@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/personal/**)",
+      "Bash(npm create:*)",
+      "Bash(npm --version)",
+      "Bash(echo \"node: $\\(node --version\\), npm: $\\(npm --version\\)\")",
+      "Bash(npx create-vite@latest . --template react-ts)",
+      "Bash(npx:*)",
+      "Bash(npm install:*)",
+      "Bash(rm -rf Workflow-front)",
+      "Bash(mkdir Workflow-front)",
+      "Bash(mv /c/personal/workflow-temp/* /c/personal/Workflow-front/)",
+      "Bash(mv /c/personal/workflow-temp/.[^.]* /c/personal/Workflow-front/)",
+      "Bash(rm -rf /c/personal/workflow-temp)",
+      "mcp__ide__getDiagnostics"
+    ]
+  }
+}

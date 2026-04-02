@@ -1,0 +1,131 @@
+{
+  "id": "",
+  "name": "test1",
+  "nodes": [
+    {
+      "id": "dndnode_0",
+      "type": "imageNode",
+      "position": {
+        "x": 410.3999938964844,
+        "y": 338.80001068115234
+      },
+      "data": {
+        "label": "트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 70
+      }
+    },
+    {
+      "id": "dndnode_1",
+      "type": "imageNode",
+      "position": {
+        "x": 535.689971827396,
+        "y": 334.9314499176887
+      },
+      "data": {
+        "label": "Azure Search",
+        "imageUrl": "nodeImages/document_search.svg"
+      },
+      "measured": {
+        "width": 58,
+        "height": 70
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "dndnode_2",
+      "type": "imageNode",
+      "position": {
+        "x": 660.687326030506,
+        "y": 338.2050400262434
+      },
+      "data": {
+        "label": "if/else",
+        "imageUrl": "nodeImages/call_split.svg",
+        "category": "condition"
+      },
+      "measured": {
+        "width": 50,
+        "height": 70
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "dndnode_3",
+      "type": "imageNode",
+      "position": {
+        "x": 781.8772978579019,
+        "y": 300.68997945679047
+      },
+      "data": {
+        "label": "Agent 답변 생성",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 64,
+        "height": 70
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "dndnode_4",
+      "type": "imageNode",
+      "position": {
+        "x": 788.4401641239435,
+        "y": 375.93282294695996
+      },
+      "data": {
+        "label": "노션 작성",
+        "imageUrl": "nodeImages/edit.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 70
+      },
+      "selected": true,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "dndnode_0",
+      "target": "dndnode_1",
+      "id": "dndEdge_0",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "source": "dndnode_1",
+      "target": "dndnode_2",
+      "id": "dndEdge_1",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "source": "dndnode_2",
+      "sourceHandle": "yes",
+      "target": "dndnode_3",
+      "id": "dndEdge_2",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "source": "dndnode_2",
+      "sourceHandle": "no",
+      "target": "dndnode_4",
+      "id": "dndEdge_3",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    }
+  ]
+}
