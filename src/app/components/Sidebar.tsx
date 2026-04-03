@@ -1,10 +1,12 @@
-import { useReactFlow, XYPosition } from "@xyflow/react";
+import { Node, useReactFlow, XYPosition } from "@xyflow/react";
 import { useCallback, useState } from "react";
 import { OnDropAction, useDnD, useDnDPosition } from "../context/DnDContext";
-import { NodeProps } from "../interfaces/workflows";
-
 let id = 0;
 const getId = () => `dndnode_${id++}`;
+
+export interface NodeProps {
+  nodes: Node[] | null;
+}
 
 export default function SideBar(props: NodeProps) {
   //   const [_, setType] = useDnD();
@@ -24,13 +26,22 @@ export default function SideBar(props: NodeProps) {
   const { setNodes } = useReactFlow();
 
   const createAddNewNode = useCallback(
-    (nodeType: string, label: string, imageUrl: string, category?: string): OnDropAction => {
+    (
+      nodeType: string,
+      label: string,
+      imageUrl: string,
+      category?: string,
+    ): OnDropAction => {
       return ({ position }: { position: XYPosition }) => {
         const newNode = {
           id: getId(),
           type: nodeType,
           position,
-          data: { label: `${label}`, imageUrl: imageUrl, ...(category && { category }) },
+          data: {
+            label: `${label}`,
+            imageUrl: imageUrl,
+            ...(category && { category }),
+          },
         };
 
         setNodes((nds) => nds.concat(newNode));
@@ -90,7 +101,12 @@ export default function SideBar(props: NodeProps) {
             });
             onDragStart(
               event,
-              createAddNewNode(node.type, node.data.label, node.data.imageUrl, node.data.category),
+              createAddNewNode(
+                node.type,
+                node.data.label,
+                node.data.imageUrl,
+                node.data.category,
+              ),
             );
           }}
         >

@@ -41,7 +41,3 @@ export const ChangeNodes = (data: any[]): Node[] => {
     data: item.data,
   }));
 };
-
-export interface NodeProps {
-  nodes: Node[] | null;
-}

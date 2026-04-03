@@ -1,7 +1,27 @@
-import { Position, Handle } from "@xyflow/react";
+import {
+  Position,
+  Handle,
+  useReactFlow,
+  BaseEdge,
+  EdgeLabelRenderer,
+  getBezierPath,
+} from "@xyflow/react";
+import { useState } from "react";
 
 // custom node 설정
 export const ImageNode = (props: any) => {
+  const { setNodes, setEdges } = useReactFlow();
+  const [hovered, setHovered] = useState(false);
+
+  const onDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNodes((nds) => nds.filter((node) => node.id !== props.id));
+    setEdges((eds) =>
+      eds.filter(
+        (edge) => edge.source !== props.id && edge.target !== props.id,
+      ),
+    );
+  };
   return (
     <div
       style={{
@@ -9,8 +29,56 @@ export const ImageNode = (props: any) => {
         flexDirection: "column",
         alignItems: "center",
         gap: "6px",
+        position: "relative",
       }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
+      <div
+        style={{
+          height: "13px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {hovered && (
+          <button
+            onClick={onDelete}
+            style={{
+              backgroundColor: "#757575",
+              width: "15px",
+              height: "15px",
+              borderRadius: "30%",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 10,
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          </button>
+        )}
+      </div>
       <div style={{ position: "relative" }}>
         <div
           style={{
@@ -103,12 +171,104 @@ export const ImageNode = (props: any) => {
   );
 };
 
+// custom edge 설정
+export const CustomEdge = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  markerEnd,
+  style,
+}: any) => {
+  const { setEdges } = useReactFlow();
+  const [hovered, setHovered] = useState(false);
+
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  const onDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEdges((eds) => eds.filter((edge) => edge.id !== id));
+  };
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={style} />
+      {/* hover 감지용 투명 넓은 path */}
+      <path
+        d={edgePath}
+        stroke="transparent"
+        strokeWidth={20}
+        fill="none"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      />
+      {hovered && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: "absolute",
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: "all",
+            }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+          >
+            <button
+              onClick={onDelete}
+              style={{
+                backgroundColor: "#757575",
+                width: "15px",
+                height: "15px",
+                borderRadius: "30%",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </button>
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
+};
+
 export const initialNodes = [
   {
     id: "manual_trigger-node",
     type: "imageNode",
     // category: "manual",
-    // position: { x: 0, y: 0 },
+    position: { x: 0, y: 0 },
     data: {
       label: "트리거",
       imageUrl: "nodeImages/touch_app.svg",
@@ -119,7 +279,7 @@ export const initialNodes = [
     id: "search_node",
     type: "imageNode",
     // category: "azure_search",
-    // position: { x: 100, y: 0 },
+    position: { x: 0, y: 0 },
     data: {
       label: "Azure Search",
       imageUrl: "nodeImages/document_search.svg",
@@ -129,7 +289,7 @@ export const initialNodes = [
     id: "generate_answer",
     type: "imageNode",
     // category: "llm_call",
-    // position: { x: 200, y: 0 },
+    position: { x: 0, y: 0 },
     data: {
       label: "Agent 답변 생성",
       imageUrl: "nodeImages/chat.svg",
@@ -139,7 +299,7 @@ export const initialNodes = [
     id: "write_notion",
     type: "imageNode",
     // category: "autonomous_agent",
-    // position: { x: 300, y: 0 },
+    position: { x: 0, y: 0 },
     data: {
       label: "노션 작성",
       imageUrl: "nodeImages/edit.svg",
@@ -148,6 +308,7 @@ export const initialNodes = [
   {
     id: "condition",
     type: "imageNode",
+    position: { x: 0, y: 0 },
     data: {
       label: "if/else",
       imageUrl: "nodeImages/call_split.svg",

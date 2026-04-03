@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,12 +15,13 @@ import {
   Connection,
   Edge,
   MarkerType,
+  Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { initialNodes } from "./components/CustomNodes";
-import { nodeTypes } from "./interfaces/nodeTypes";
+import { nodeTypes, edgeTypes } from "./interfaces/nodeTypes";
 import SideBar from "./components/Sidebar";
-import { ChangeNodes, Node, Workflow } from "./interfaces/workflows";
+import { ChangeNodes, Workflow } from "./interfaces/workflows";
 import { DnDProvider, useDnD } from "./context/DnDContext";
 import { randomUUID } from "crypto";
 
@@ -277,21 +278,32 @@ const getEdgeId = () => `dndEdge_${eid++}`;
 function FlowEditor() {
   const [activeTab, setActiveTab] = useState<Tab>("new");
   const [title, setTitle] = useState("");
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [sideNodes, setSideNodes] = useState<Node[] | null>(null);
+  const [savedWorkflows, setSavedWorkflows] = useState<
+    { id: string; name: string; fileName: string }[]
+  >([]);
   const reactFlowWrapper = useRef(null);
 
   useEffect(() => {
     const newNodes = ChangeNodes(initialNodes);
-    setSideNodes(newNodes);
+    setSideNodes(initialNodes);
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "saved") return;
+    fetch("/api/workflows")
+      .then((res) => res.json())
+      .then((data) => setSavedWorkflows(data))
+      .catch(console.error);
+  }, [activeTab]);
 
   const onConnect = useCallback((params: Connection) => {
     const arrowEdge: Edge = {
       ...params,
       id: getEdgeId(),
+      type: "customEdge",
       markerEnd: { type: MarkerType.ArrowClosed },
     };
     setEdges((eds) => addEdge(arrowEdge, eds));
@@ -454,29 +466,94 @@ function FlowEditor() {
       </header>
 
       {/* Body */}
-      <div
-        style={{ display: "flex", flex: 1, overflow: "hidden" }}
-        className="reactflow-wrapper"
-        ref={reactFlowWrapper}
-      >
-        {/* ReactFlow canvas */}
-        <div style={{ flex: 1 }}>
-          <ReactFlow
-            nodeTypes={nodeTypes}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-          >
-            <MiniMap nodeStrokeWidth={3} />
-            <Background />
-          </ReactFlow>
+      {activeTab === "new" ? (
+        <div
+          style={{ display: "flex", flex: 1, overflow: "hidden" }}
+          className="reactflow-wrapper"
+          ref={reactFlowWrapper}
+        >
+          <div style={{ flex: 1 }}>
+            <ReactFlow
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+            >
+              <MiniMap nodeStrokeWidth={3} />
+              <Background />
+            </ReactFlow>
+          </div>
+          <SideBar nodes={sideNodes} />
         </div>
+      ) : (
+        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+          {/* 왼쪽: 빈 캔버스 영역 */}
+          <div style={{ flex: 1, backgroundColor: "#111" }} />
 
-        {/* Node list panel */}
-        <SideBar nodes={sideNodes} />
-      </div>
+          {/* 오른쪽: 저장된 워크플로우 목록 */}
+          <div
+            style={{
+              width: "220px",
+              borderLeft: "1px solid #333",
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              overflowY: "auto",
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#888",
+                marginBottom: "8px",
+                fontWeight: "bold",
+              }}
+            >
+              저장된 워크플로우
+            </div>
+            {savedWorkflows.length === 0 ? (
+              <div style={{ fontSize: "12px", color: "#555" }}>없음</div>
+            ) : (
+              savedWorkflows.map((wf) => (
+                <div
+                  key={wf.id}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #333",
+                    backgroundColor: "#222",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {wf.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "#666",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {wf.fileName}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

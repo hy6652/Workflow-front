@@ -1,5 +1,9 @@
-import { ImageNode } from "../components/CustomNodes";
+import { ImageNode, CustomEdge } from "../components/CustomNodes";
 
 export const nodeTypes = {
   imageNode: ImageNode,
+};
+
+export const edgeTypes = {
+  customEdge: CustomEdge,
 };
