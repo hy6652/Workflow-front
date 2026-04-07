@@ -1,15 +1,21 @@
+import { Node } from "@xyflow/react";
+
 export interface Workflow {
   id: string;
   name: string;
-  description?: string;
+  description: string;
+  version: string;
+  orgId: string;
+  isActive: boolean;
+  isDeleted: boolean;
   nodes: Node[];
   edges: Edge[];
 }
 
-export interface Node {
+export interface Node2 {
   id: string;
   type: string;
-  category?: string;
+  category: string;
   position: NodePosition;
   data: NodeData;
 }
@@ -29,10 +35,11 @@ interface Edge {
   source: string;
   target: string;
   type?: string;
+  edgeType?: "conditional" | "direct" | "fan_out" | "fan_in";
   route?: string;
 }
 
-export const ChangeNodes = (data: any[]): Node[] => {
+export const ChangeNodes = (data: any[]): Node2[] => {
   return data.map((item) => ({
     id: item.id,
     type: item.type,

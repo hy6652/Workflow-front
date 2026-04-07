@@ -1,0 +1,140 @@
+{
+  "id": "14dd452b-8b84-4413-b951-685b0440dc1e",
+  "name": "test12",
+  "nodes": [
+    {
+      "id": "dndnode_0",
+      "type": "imageNode",
+      "category": "manual",
+      "position": {
+        "x": 303.92688314566385,
+        "y": 342.8986643568071
+      },
+      "data": {
+        "label": "매뉴얼 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 52,
+        "height": 89
+      },
+      "selected": false,
+      "parameters": {
+        "input": "{\"companyName\": \"삼성전자\"}"
+      },
+      "dragging": false
+    },
+    {
+      "id": "dndnode_1",
+      "type": "imageNode",
+      "category": "autonomous_agent",
+      "position": {
+        "x": 471.81115595596043,
+        "y": 348.28994733048626
+      },
+      "data": {
+        "label": "Dart API",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "당신은 DART 공시 데이터 분석 전문가입니다. OpenDART API 도구를 사용하여 기업 개황을 조회하세요. 사용자가 요청한 기업의 기업코드를 찾아 개황 정보를 조회하고, 결과를 한국어로 깔끔하게 정리해주세요.",
+        "tools": [
+          {
+            "type": "http_api",
+            "provider": "dart",
+            "endpoint": "company",
+            "name": "dart_company_overview",
+            "description": "기업 개황 조회. JSON으로 corp_code(8자리 기업코드)를 전달하세요. 예: {\\\"corp_code\\\":\\\"00126380\\\"}",
+            "toolName": "",
+            "serverAlias": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "dndnode_2",
+      "type": "imageNode",
+      "category": "llm_call",
+      "position": {
+        "x": 649.7489965175575,
+        "y": 357.3318486657867
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "parameters": {
+        "systemPrompt": "당신은 기업 분석 전문 애널리스트입니다. 제공된 DART 기업정보를 종합하여 체계적인 기업 분석 보고서를 작성하세요. 보고서는 개요, 사업 내용, 재무 요약, 최신 뉴스 동향, 종합 의견을 포함해야 합니다.",
+        "prompt": "다음 기업 정보를 기반으로 보고서를 작성하세요.\\n\\n{{input}}"
+      },
+      "dragging": false
+    },
+    {
+      "id": "dndnode_3",
+      "type": "imageNode",
+      "category": "output",
+      "position": {
+        "x": 822.2631917978787,
+        "y": 348.4520101233656
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "dndnode_0",
+      "target": "dndnode_1",
+      "id": "dndEdge_0",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct"
+    },
+    {
+      "source": "dndnode_1",
+      "target": "dndnode_2",
+      "id": "dndEdge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct"
+    },
+    {
+      "source": "dndnode_2",
+      "target": "dndnode_3",
+      "id": "dndEdge_2",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct"
+    }
+  ],
+  "description": "test12 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

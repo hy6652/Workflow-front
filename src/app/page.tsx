@@ -21,9 +21,12 @@ import "@xyflow/react/dist/style.css";
 import { initialNodes } from "./components/CustomNodes";
 import { nodeTypes, edgeTypes } from "./interfaces/nodeTypes";
 import SideBar from "./components/Sidebar";
+import NodeConfigPanel from "./components/NodeConfigPanel";
 import { ChangeNodes, Workflow } from "./interfaces/workflows";
 import { DnDProvider, useDnD } from "./context/DnDContext";
 import { randomUUID } from "crypto";
+import { runWorkflowJsonAsync } from "@/services/workflowService";
+import type { RunWorkflowRequest } from "@/services/workflowService";
 
 // const nodeList = [
 //   { label: "트리거", imageUrl: "nodeImages/touch_app.svg", category: "manual" },
@@ -281,13 +284,13 @@ function FlowEditor() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [sideNodes, setSideNodes] = useState<Node[] | null>(null);
+  const [configNodeId, setConfigNodeId] = useState<string | null>(null);
   const [savedWorkflows, setSavedWorkflows] = useState<
     { id: string; name: string; fileName: string }[]
   >([]);
   const reactFlowWrapper = useRef(null);
 
   useEffect(() => {
-    const newNodes = ChangeNodes(initialNodes);
     setSideNodes(initialNodes);
   }, []);
 
@@ -311,6 +314,23 @@ function FlowEditor() {
     console.log(`edges : ${edges.map((x) => x)}`);
   }, []);
 
+  const onNodeDoubleClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      setConfigNodeId(node.id);
+    },
+    [],
+  );
+
+  const handleSaveNodeConfig = useCallback(
+    (nodeId: string, parameters: Record<string, any>) => {
+      setNodes((nds) =>
+        nds.map((n) => (n.id === nodeId ? ({ ...n, parameters } as any) : n)),
+      );
+      setConfigNodeId(null);
+    },
+    [setNodes],
+  );
+
   // reset
   const handleReset = () => {
     setNodes([]);
@@ -333,11 +353,45 @@ function FlowEditor() {
       return;
     }
 
-    const workflowData = {
+    // 소스/타겟별 엣지 개수 집계 (conditional 제외)
+    const sourceEdgeCount: Record<string, number> = {};
+    const targetEdgeCount: Record<string, number> = {};
+    edges.forEach((edge) => {
+      const isConditional =
+        edge.sourceHandle === "true" || edge.sourceHandle === "false";
+      if (!isConditional) {
+        sourceEdgeCount[edge.source] = (sourceEdgeCount[edge.source] ?? 0) + 1;
+        targetEdgeCount[edge.target] = (targetEdgeCount[edge.target] ?? 0) + 1;
+      }
+    });
+
+    // 엣지에 edgeType 주입
+    const transformedEdges = edges.map((edge) => {
+      const isConditional =
+        edge.sourceHandle === "true" || edge.sourceHandle === "false";
+      let edgeType: "conditional" | "direct" | "fan_out" | "fan_in";
+      if (isConditional) {
+        edgeType = "conditional";
+      } else {
+        const outCount = sourceEdgeCount[edge.source] ?? 0;
+        const inCount = targetEdgeCount[edge.target] ?? 0;
+        if (outCount > 1) edgeType = "fan_out";
+        else if (inCount > 1) edgeType = "fan_in";
+        else edgeType = "direct";
+      }
+      return { ...edge, edgeType };
+    });
+
+    const workflowData: Workflow = {
       id: `${crypto.randomUUID()}`,
       name: title,
       nodes: nodes,
-      edges: edges,
+      edges: transformedEdges,
+      description: `${title} 작업`,
+      orgId: "org-001",
+      isActive: true,
+      isDeleted: false,
+      version: "1.0.0",
     };
 
     const response = await fetch("/api/filesave", {
@@ -347,7 +401,20 @@ function FlowEditor() {
     });
 
     if (response.ok) {
-      alert("VS Code 프로젝트 내 NewWorkflows 폴더에 저장되었습니다!");
+      const triggerNode = nodes.find((n) => (n as any).category === "manual");
+      const triggerInput = (triggerNode as any)?.parameters?.input ?? "{}";
+
+      const payload: RunWorkflowRequest = {
+        definition: workflowData,
+        input: triggerInput,
+      };
+
+      console.log(`workflow : ${workflowData}`);
+      await runWorkflowJsonAsync(payload).then((response) => {
+        console.log(`response status : ${response.success}`);
+        if (response.success) alert("워크플로우 실행 성공");
+        else alert("워크플로우 실행 실패");
+      });
     } else {
       alert("저장 실패!");
     }
@@ -481,12 +548,29 @@ function FlowEditor() {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              onNodeDoubleClick={onNodeDoubleClick}
             >
               <MiniMap nodeStrokeWidth={3} />
               <Background />
             </ReactFlow>
           </div>
-          <SideBar nodes={sideNodes} />
+          {configNodeId ? (
+            <NodeConfigPanel
+              key={configNodeId}
+              nodeId={configNodeId}
+              category={
+                (nodes.find((n) => n.id === configNodeId) as any)?.category ??
+                ""
+              }
+              initialParameters={
+                (nodes.find((n) => n.id === configNodeId) as any)?.parameters
+              }
+              onSave={handleSaveNodeConfig}
+              onClose={() => setConfigNodeId(null)}
+            />
+          ) : (
+            <SideBar nodes={sideNodes} />
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>

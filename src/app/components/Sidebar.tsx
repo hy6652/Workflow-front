@@ -30,17 +30,17 @@ export default function SideBar(props: NodeProps) {
       nodeType: string,
       label: string,
       imageUrl: string,
-      category?: string,
+      category: string,
     ): OnDropAction => {
       return ({ position }: { position: XYPosition }) => {
         const newNode = {
           id: getId(),
           type: nodeType,
+          category,
           position,
           data: {
             label: `${label}`,
             imageUrl: imageUrl,
-            ...(category && { category }),
           },
         };
 
@@ -105,7 +105,7 @@ export default function SideBar(props: NodeProps) {
                 node.type,
                 node.data.label,
                 node.data.imageUrl,
-                node.data.category,
+                (node as any).category,
               ),
             );
           }}

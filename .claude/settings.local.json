@@ -13,7 +13,8 @@
       "Bash(mv /c/personal/workflow-temp/* /c/personal/Workflow-front/)",
       "Bash(mv /c/personal/workflow-temp/.[^.]* /c/personal/Workflow-front/)",
       "Bash(rm -rf /c/personal/workflow-temp)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(xargs wc:*)"
     ]
   }
 }

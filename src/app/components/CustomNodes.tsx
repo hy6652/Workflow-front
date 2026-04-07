@@ -2,6 +2,7 @@ import {
   Position,
   Handle,
   useReactFlow,
+  useNodes,
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
@@ -11,7 +12,11 @@ import { useState } from "react";
 // custom node 설정
 export const ImageNode = (props: any) => {
   const { setNodes, setEdges } = useReactFlow();
+  const nodes = useNodes();
   const [hovered, setHovered] = useState(false);
+
+  const currentNode = nodes.find((n) => n.id === props.id);
+  const category = (currentNode as any)?.category as string | undefined;
 
   const onDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,11 +107,11 @@ export const ImageNode = (props: any) => {
             }}
           />
         </div>
-        {props.data.label != "트리거" && (
+        {!props.data.label.includes("트리거") && (
           <Handle type="target" position={Position.Left} />
         )}
 
-        {props.data.category === "condition" ? (
+        {category === "condition" ? (
           <>
             <Handle
               type="source"
@@ -267,18 +272,17 @@ export const initialNodes = [
   {
     id: "manual_trigger-node",
     type: "imageNode",
-    // category: "manual",
+    category: "manual",
     position: { x: 0, y: 0 },
     data: {
-      label: "트리거",
+      label: "매뉴얼 트리거",
       imageUrl: "nodeImages/touch_app.svg",
-      // category: "manual",
     },
   },
   {
     id: "search_node",
     type: "imageNode",
-    // category: "azure_search",
+    category: "azure_search",
     position: { x: 0, y: 0 },
     data: {
       label: "Azure Search",
@@ -288,17 +292,17 @@ export const initialNodes = [
   {
     id: "generate_answer",
     type: "imageNode",
-    // category: "llm_call",
+    category: "llm_call",
     position: { x: 0, y: 0 },
     data: {
-      label: "Agent 답변 생성",
+      label: "Agent 호출",
       imageUrl: "nodeImages/chat.svg",
     },
   },
   {
     id: "write_notion",
     type: "imageNode",
-    // category: "autonomous_agent",
+    category: "autonomous_agent",
     position: { x: 0, y: 0 },
     data: {
       label: "노션 작성",
@@ -308,11 +312,41 @@ export const initialNodes = [
   {
     id: "condition",
     type: "imageNode",
+    category: "condition",
     position: { x: 0, y: 0 },
     data: {
       label: "if/else",
       imageUrl: "nodeImages/call_split.svg",
-      category: "condition",
+    },
+  },
+  {
+    id: "write_report",
+    type: "imageNode",
+    category: "report",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "레포트 작성",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
+  {
+    id: "dart_api",
+    type: "imageNode",
+    category: "autonomous_agent",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "Dart API",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
+  {
+    id: "final_output",
+    type: "imageNode",
+    category: "output",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "최종 출력",
+      imageUrl: "nodeImages/call_split.svg",
     },
   },
 ];
