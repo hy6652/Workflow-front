@@ -147,7 +147,11 @@ export default function NodeConfigPanel({
             onChange={(e) => setInputJson(e.target.value)}
             rows={6}
             placeholder={'{"key": "value"}'}
-            style={{ ...inputStyle, resize: "vertical", fontFamily: "monospace" }}
+            style={{
+              ...inputStyle,
+              resize: "vertical",
+              fontFamily: "monospace",
+            }}
           />
         </div>
       );
@@ -308,13 +312,16 @@ export default function NodeConfigPanel({
               {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
                 <div key={k} style={fieldStyle}>
                   <span style={{ ...labelStyle, fontSize: "10px" }}>
-                    {k === "op" ? "op  (gt, le, eq …)" : k}
+                    {k === "op" ? "op  (gt, le, equals …)" : k}
                   </span>
                   <input
                     type="text"
                     value={expression[k]}
                     onChange={(e) =>
-                      setExpression((prev) => ({ ...prev, [k]: e.target.value }))
+                      setExpression((prev) => ({
+                        ...prev,
+                        [k]: e.target.value,
+                      }))
                     }
                     style={inputStyle}
                   />
@@ -351,9 +358,7 @@ export default function NodeConfigPanel({
       );
     }
 
-    return (
-      <div style={{ fontSize: "12px", color: "#555" }}>설정 없음</div>
-    );
+    return <div style={{ fontSize: "12px", color: "#555" }}>설정 없음</div>;
   };
 
   return (

@@ -1,0 +1,245 @@
+{
+  "id": "1932926f-f91d-458f-88dc-46a6f3de1cba",
+  "name": "기업정보 분석 워크플로우 1",
+  "nodes": [
+    {
+      "id": "dndnode_0",
+      "type": "imageNode",
+      "category": "manual",
+      "position": {
+        "x": 358.8364411158072,
+        "y": 376.57427967494806
+      },
+      "data": {
+        "label": "매뉴얼 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 52,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "input": "삼성전자 실적과 주요 이슈 알려줘"
+      }
+    },
+    {
+      "id": "dndnode_1",
+      "type": "imageNode",
+      "category": "azure_search",
+      "position": {
+        "x": 534.2000122070312,
+        "y": 322.6705841326321
+      },
+      "data": {
+        "label": "Azure Search",
+        "imageUrl": "nodeImages/document_search.svg"
+      },
+      "measured": {
+        "width": 58,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "top": 5,
+        "queryField": "question"
+      }
+    },
+    {
+      "id": "dndnode_2",
+      "type": "imageNode",
+      "category": "autonomous_agent",
+      "position": {
+        "x": 603.3000183105469,
+        "y": 454.670568873843
+      },
+      "data": {
+        "label": "Dart API",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "당신은 DART 공시 데이터 분석 전문가입니다. OpenDART API 도구를 사용하여 기업 개황을 조회하세요. 사용자가 요청한 기업의 기업코드를 찾아 개황 정보를 조회하고, 결과를 한국어로 깔끔하게 정리해주세요.",
+        "tools": [
+          {
+            "type": "http_api",
+            "provider": "dart",
+            "endpoint": "company",
+            "name": "dart_company_overview",
+            "description": "기업 개황 조회. JSON으로 corp_code(8자리 기업코드)를 전달하세요. 예: {\\\\\\\"corp_code\\\\\\\":\\\\\\\"00126380\\\\\\\"}",
+            "toolName": "",
+            "serverAlias": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "dndnode_3",
+      "type": "imageNode",
+      "category": "llm_call",
+      "position": {
+        "x": 496.6475885692083,
+        "y": 452.70737695244713
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "사용자 질문에서 회사 이름을 추출하여 {\"companyName\":\"\"} 형태로 만드세요.",
+        "prompt": "사용자 질문 : {{input}}"
+      }
+    },
+    {
+      "id": "dndnode_4",
+      "type": "imageNode",
+      "category": "aggregator",
+      "position": {
+        "x": 758.3476312938177,
+        "y": 381.40738915947844
+      },
+      "data": {
+        "label": "Aggregator",
+        "imageUrl": "nodeImages/edit.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "dndnode_6",
+      "type": "imageNode",
+      "category": "llm_call",
+      "position": {
+        "x": 905.1068320887659,
+        "y": 380.99167869648375
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "당신은 기업 레포트 작성 전문가입니다. 주어진 기업 실적 및 주요 이슈 사항을 보고 한국어로 레포트를 작성해주세요. ",
+        "prompt": "주어진 자료를 분석하세요. : {{input}}"
+      }
+    },
+    {
+      "id": "dndnode_7",
+      "type": "imageNode",
+      "category": "output",
+      "position": {
+        "x": 1044.3719580495745,
+        "y": 381.5997898650873
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "dndnode_0",
+      "target": "dndnode_1",
+      "id": "dndEdge_0",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_out"
+    },
+    {
+      "source": "dndnode_0",
+      "target": "dndnode_3",
+      "id": "dndEdge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_out"
+    },
+    {
+      "source": "dndnode_3",
+      "target": "dndnode_2",
+      "id": "dndEdge_2",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct"
+    },
+    {
+      "source": "dndnode_1",
+      "target": "dndnode_4",
+      "id": "dndEdge_3",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_in"
+    },
+    {
+      "source": "dndnode_2",
+      "target": "dndnode_4",
+      "id": "dndEdge_4",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_in"
+    },
+    {
+      "source": "dndnode_4",
+      "target": "dndnode_6",
+      "id": "dndEdge_5",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct"
+    },
+    {
+      "source": "dndnode_6",
+      "target": "dndnode_7",
+      "id": "dndEdge_6",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct"
+    }
+  ],
+  "description": "기업정보 분석 워크플로우 1 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

@@ -6,6 +6,7 @@ const getId = () => `dndnode_${id++}`;
 
 export interface NodeProps {
   nodes: Node[] | null;
+  onBack?: () => void;
 }
 
 export default function SideBar(props: NodeProps) {
@@ -63,6 +64,23 @@ export default function SideBar(props: NodeProps) {
         flexShrink: 0,
       }}
     >
+      {props.onBack && (
+        <button
+          onClick={props.onBack}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#888",
+            fontSize: "12px",
+            cursor: "pointer",
+            padding: 0,
+            textAlign: "left",
+            marginBottom: "4px",
+          }}
+        >
+          ← 목록
+        </button>
+      )}
       <div
         style={{
           fontSize: "12px",

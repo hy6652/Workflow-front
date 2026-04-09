@@ -310,6 +310,16 @@ export const initialNodes = [
     },
   },
   {
+    id: "aggregator",
+    type: "imageNode",
+    category: "aggregator",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "Aggregator",
+      imageUrl: "nodeImages/edit.svg",
+    },
+  },
+  {
     id: "condition",
     type: "imageNode",
     category: "condition",
