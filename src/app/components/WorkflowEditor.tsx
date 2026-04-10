@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, ReactNode } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -29,6 +29,8 @@ interface WorkflowEditorProps {
     parameters: Record<string, any>,
   ) => void;
   sideNodes: Node[] | null;
+  bottomSlot?: ReactNode;
+  handleCreate: (input: string) => void;
 }
 
 export default function WorkflowEditor({
@@ -42,6 +44,8 @@ export default function WorkflowEditor({
   setConfigNodeId,
   handleSaveNodeConfig,
   sideNodes,
+  bottomSlot,
+  handleCreate,
 }: WorkflowEditorProps) {
   const reactFlowWrapper = useRef(null);
 
@@ -51,20 +55,23 @@ export default function WorkflowEditor({
       className="reactflow-wrapper"
       ref={reactFlowWrapper}
     >
-      <div style={{ flex: 1 }}>
-        <ReactFlow
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeDoubleClick={onNodeDoubleClick}
-        >
-          <MiniMap nodeStrokeWidth={3} />
-          <Background />
-        </ReactFlow>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1 }}>
+          <ReactFlow
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeDoubleClick={onNodeDoubleClick}
+          >
+            <MiniMap nodeStrokeWidth={3} />
+            <Background />
+          </ReactFlow>
+        </div>
+        {bottomSlot}
       </div>
 
       {configNodeId ? (
@@ -81,7 +88,7 @@ export default function WorkflowEditor({
           onClose={() => setConfigNodeId(null)}
         />
       ) : (
-        <SideBar nodes={sideNodes} />
+        <SideBar nodes={sideNodes} handleCreate={handleCreate} />
       )}
     </div>
   );

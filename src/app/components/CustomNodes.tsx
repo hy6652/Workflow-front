@@ -98,8 +98,8 @@ export const ImageNode = (props: any) => {
           }}
         >
           <img
-            src={props.data.imageUrl}
-            alt={props.data.label}
+            src={props.data?.imageUrl ?? ""}
+            alt={props.data?.label ?? ""}
             style={{
               width: "24px",
               height: "24px",
@@ -107,7 +107,7 @@ export const ImageNode = (props: any) => {
             }}
           />
         </div>
-        {!props.data.label.includes("트리거") && (
+        {!props.data?.label?.includes("트리거") && (
           <Handle type="target" position={Position.Left} />
         )}
 
@@ -170,7 +170,7 @@ export const ImageNode = (props: any) => {
           whiteSpace: "nowrap",
         }}
       >
-        {props.data.label}
+        {props.data?.label ?? ""}
       </div>
     </div>
   );
@@ -300,16 +300,6 @@ export const initialNodes = [
     },
   },
   {
-    id: "write_notion",
-    type: "imageNode",
-    category: "autonomous_agent",
-    position: { x: 0, y: 0 },
-    data: {
-      label: "노션 작성",
-      imageUrl: "nodeImages/edit.svg",
-    },
-  },
-  {
     id: "aggregator",
     type: "imageNode",
     category: "aggregator",
@@ -340,12 +330,12 @@ export const initialNodes = [
     },
   },
   {
-    id: "dart_api",
+    id: "autonomous",
     type: "imageNode",
     category: "autonomous_agent",
     position: { x: 0, y: 0 },
     data: {
-      label: "Dart API",
+      label: "Autonomous Agent",
       imageUrl: "nodeImages/call_split.svg",
     },
   },

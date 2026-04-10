@@ -95,6 +95,7 @@ export default function NodeConfigPanel({
   const [llmPrompt, setLlmPrompt] = useState<string>(
     initialParameters?.prompt ?? "",
   );
+  const [outputToken, setOutputToken] = useState<number | null>(null);
 
   // condition
   const [trueOutput, setTrueOutput] = useState<string>(
@@ -270,6 +271,15 @@ export default function NodeConfigPanel({
               onChange={(e) => setLlmPrompt(e.target.value)}
               rows={4}
               style={{ ...inputStyle, resize: "vertical" }}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Output Token</span>
+            <input
+              type="text"
+              value={trueOutput}
+              onChange={(e) => setOutputToken(Number(e.target.value))}
+              style={inputStyle}
             />
           </div>
         </>

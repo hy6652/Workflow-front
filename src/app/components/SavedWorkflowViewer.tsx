@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { ReactNode } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -19,6 +19,7 @@ interface Props {
   onEdgesChange: OnEdgesChange;
   onConnect: (params: Connection) => void;
   onNodeDoubleClick: (event: React.MouseEvent, node: Node) => void;
+  bottomSlot?: ReactNode;
 }
 
 export default function SavedWorkflowViewer({
@@ -28,9 +29,11 @@ export default function SavedWorkflowViewer({
   onEdgesChange,
   onConnect,
   onNodeDoubleClick,
+  bottomSlot,
 }: Props) {
   return (
-    <div style={{ flex: 1, backgroundColor: "#111" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", backgroundColor: "#111" }}>
+      <div style={{ flex: 1 }}>
       <ReactFlow
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -45,6 +48,8 @@ export default function SavedWorkflowViewer({
         <MiniMap nodeStrokeWidth={3} />
         <Background />
       </ReactFlow>
+      </div>
+      {bottomSlot}
     </div>
   );
 }

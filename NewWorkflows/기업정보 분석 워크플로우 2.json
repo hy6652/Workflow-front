@@ -1,14 +1,14 @@
 {
-  "id": "8cf15cf1-4aa0-4564-ba18-7818af274b9f",
+  "id": "ed6adc94-8f51-400c-9cb8-a1f1ab98d6fb",
   "name": "기업정보 분석 워크플로우 2",
   "nodes": [
     {
-      "id": "dndnode_10",
+      "id": "dndnode_0",
       "type": "imageNode",
       "category": "manual",
       "position": {
-        "x": 191.1999969482422,
-        "y": 219.80001831054688
+        "x": 358.8364411158072,
+        "y": 376.57427967494806
       },
       "data": {
         "label": "매뉴얼 트리거",
@@ -19,68 +19,41 @@
         "height": 89
       },
       "selected": false,
+      "dragging": false,
       "parameters": {
-        "input": "삼성전자의 2025 실적이 어떻게 돼?"
+        "input": "삼성전자 실적과 주요 이슈 알려줘"
       }
     },
     {
-      "id": "dndnode_12",
+      "id": "dndnode_1",
       "type": "imageNode",
-      "category": "llm_call",
+      "category": "azure_search",
       "position": {
-        "x": 347.8743674880454,
-        "y": 219.1999969482422
+        "x": 534.2000122070312,
+        "y": 322.6705841326321
       },
       "data": {
-        "label": "Agent 호출",
-        "imageUrl": "nodeImages/chat.svg"
+        "label": "Azure Search",
+        "imageUrl": "nodeImages/document_search.svg"
       },
       "measured": {
-        "width": 50,
+        "width": 58,
         "height": 89
       },
       "selected": false,
       "dragging": false,
       "parameters": {
-        "systemPrompt": "사용자 질문의 의도를 파악하여 {\"intent\": \"\"} 의 형태로 리턴하세요. \n사용자가 보고서 생성을 원하면 intent는 report가 되고, 그렇지 않으면 search 라고 하세요.",
-        "prompt": "사용자 질문을 분석하세요 : {{input}}"
+        "top": 5,
+        "queryField": "question"
       }
     },
     {
-      "id": "dndnode_13",
-      "type": "imageNode",
-      "category": "condition",
-      "position": {
-        "x": 499.39017252258367,
-        "y": 220.37927102143283
-      },
-      "data": {
-        "label": "if/else",
-        "imageUrl": "nodeImages/call_split.svg"
-      },
-      "measured": {
-        "width": 50,
-        "height": 89
-      },
-      "selected": true,
-      "dragging": false,
-      "parameters": {
-        "trueOutput": "report",
-        "falseOutput": "search",
-        "expression": {
-          "field": "intent",
-          "op": "equals",
-          "value": "report"
-        }
-      }
-    },
-    {
-      "id": "dndnode_14",
+      "id": "dndnode_2",
       "type": "imageNode",
       "category": "autonomous_agent",
       "position": {
-        "x": 660.8168739064206,
-        "y": 158.40122717130993
+        "x": 603.3000183105469,
+        "y": 454.670568873843
       },
       "data": {
         "label": "Dart API",
@@ -100,7 +73,7 @@
             "provider": "dart",
             "endpoint": "company",
             "name": "dart_company_overview",
-            "description": "기업 개황 조회. JSON으로 corp_code(8자리 기업코드)를 전달하세요. 예: {\"corp_code\":\"00126380\"}",
+            "description": "기업 개황 조회. JSON으로 corp_code(8자리 기업코드)를 전달하세요. 예: {\\\\\\\"corp_code\\\\\\\":\\\\\\\"00126380\\\\\\\"}",
             "toolName": "",
             "serverAlias": ""
           }
@@ -108,12 +81,54 @@
       }
     },
     {
-      "id": "dndnode_15",
+      "id": "dndnode_3",
       "type": "imageNode",
       "category": "llm_call",
       "position": {
-        "x": 802.6168922169675,
-        "y": 159.20123022306774
+        "x": 496.6475885692083,
+        "y": 452.70737695244713
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "사용자 질문에서 회사 이름을 추출하여 {\"companyName\":\"\"} 형태로 만드세요.",
+        "prompt": "사용자 질문 : {{input}}"
+      }
+    },
+    {
+      "id": "dndnode_4",
+      "type": "imageNode",
+      "category": "aggregator",
+      "position": {
+        "x": 758.3476312938177,
+        "y": 381.40738915947844
+      },
+      "data": {
+        "label": "Aggregator",
+        "imageUrl": "nodeImages/edit.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "dndnode_6",
+      "type": "imageNode",
+      "category": "llm_call",
+      "position": {
+        "x": 905.1068320887659,
+        "y": 380.99167869648375
       },
       "data": {
         "label": "Agent 호출",
@@ -131,77 +146,12 @@
       }
     },
     {
-      "id": "dndnode_16",
+      "id": "dndnode_7",
       "type": "imageNode",
       "category": "output",
       "position": {
-        "x": 949.9223734358662,
-        "y": 159.3484774065871
-      },
-      "data": {
-        "label": "최종 출력",
-        "imageUrl": "nodeImages/call_split.svg"
-      },
-      "measured": {
-        "width": 50,
-        "height": 89
-      },
-      "selected": false,
-      "dragging": false
-    },
-    {
-      "id": "dndnode_17",
-      "type": "imageNode",
-      "category": "llm_call",
-      "position": {
-        "x": 818.93978228736,
-        "y": 291.80984085796035
-      },
-      "data": {
-        "label": "Agent 호출",
-        "imageUrl": "nodeImages/chat.svg"
-      },
-      "measured": {
-        "width": 50,
-        "height": 89
-      },
-      "selected": false,
-      "dragging": false,
-      "parameters": {
-        "systemPrompt": "사용자 질문에 대해 주어진 문서를 보고 답변을 하세요.",
-        "prompt": "사용자 질문 및 문서 : {{input}}"
-      }
-    },
-    {
-      "id": "dndnode_18",
-      "type": "imageNode",
-      "category": "azure_search",
-      "position": {
-        "x": 668.7322612949799,
-        "y": 290.74889014300174
-      },
-      "data": {
-        "label": "Azure Search",
-        "imageUrl": "nodeImages/document_search.svg"
-      },
-      "measured": {
-        "width": 58,
-        "height": 89
-      },
-      "selected": false,
-      "dragging": false,
-      "parameters": {
-        "top": 5,
-        "queryField": "query"
-      }
-    },
-    {
-      "id": "dndnode_19",
-      "type": "imageNode",
-      "category": "output",
-      "position": {
-        "x": 958.0825445906152,
-        "y": 288.7784077249395
+        "x": 1044.3719580495745,
+        "y": 381.5997898650873
       },
       "data": {
         "label": "최종 출력",
@@ -217,9 +167,31 @@
   ],
   "edges": [
     {
-      "source": "dndnode_10",
-      "target": "dndnode_12",
-      "id": "dndEdge_9",
+      "source": "dndnode_0",
+      "target": "dndnode_1",
+      "id": "dndEdge_0",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_out",
+      "route": ""
+    },
+    {
+      "source": "dndnode_0",
+      "target": "dndnode_3",
+      "id": "dndEdge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_out",
+      "route": ""
+    },
+    {
+      "source": "dndnode_3",
+      "target": "dndnode_2",
+      "id": "dndEdge_2",
       "type": "customEdge",
       "markerEnd": {
         "type": "arrowclosed"
@@ -228,9 +200,31 @@
       "route": ""
     },
     {
-      "source": "dndnode_12",
-      "target": "dndnode_13",
-      "id": "dndEdge_10",
+      "source": "dndnode_1",
+      "target": "dndnode_4",
+      "id": "dndEdge_3",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_in",
+      "route": ""
+    },
+    {
+      "source": "dndnode_2",
+      "target": "dndnode_4",
+      "id": "dndEdge_4",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_in",
+      "route": ""
+    },
+    {
+      "source": "dndnode_4",
+      "target": "dndnode_6",
+      "id": "dndEdge_5",
       "type": "customEdge",
       "markerEnd": {
         "type": "arrowclosed"
@@ -239,66 +233,9 @@
       "route": ""
     },
     {
-      "source": "dndnode_13",
-      "sourceHandle": "true",
-      "target": "dndnode_14",
-      "id": "dndEdge_11",
-      "type": "customEdge",
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "edgeType": "conditional",
-      "route": "report"
-    },
-    {
-      "source": "dndnode_14",
-      "target": "dndnode_15",
-      "id": "dndEdge_12",
-      "type": "customEdge",
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "edgeType": "direct",
-      "route": ""
-    },
-    {
-      "source": "dndnode_15",
-      "target": "dndnode_16",
-      "id": "dndEdge_13",
-      "type": "customEdge",
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "edgeType": "direct",
-      "route": ""
-    },
-    {
-      "source": "dndnode_13",
-      "sourceHandle": "false",
-      "target": "dndnode_18",
-      "id": "dndEdge_15",
-      "type": "customEdge",
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "edgeType": "conditional",
-      "route": "search"
-    },
-    {
-      "source": "dndnode_18",
-      "target": "dndnode_17",
-      "id": "dndEdge_16",
-      "type": "customEdge",
-      "markerEnd": {
-        "type": "arrowclosed"
-      },
-      "edgeType": "direct",
-      "route": ""
-    },
-    {
-      "source": "dndnode_17",
-      "target": "dndnode_19",
-      "id": "dndEdge_17",
+      "source": "dndnode_6",
+      "target": "dndnode_7",
+      "id": "dndEdge_6",
       "type": "customEdge",
       "markerEnd": {
         "type": "arrowclosed"

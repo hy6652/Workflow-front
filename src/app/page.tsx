@@ -20,8 +20,15 @@ import { initialNodes } from "./components/CustomNodes";
 import { nodeTypes, edgeTypes } from "./interfaces/nodeTypes";
 import { Workflow } from "./interfaces/workflows";
 import { DnDProvider } from "./context/DnDContext";
-import { runWorkflowJsonAsync } from "@/services/workflowService";
-import type { RunWorkflowRequest } from "@/services/workflowService";
+import {
+  createWorkflow,
+  runWorkflowJsonAsync,
+} from "@/services/workflowService";
+import type {
+  RunWorkflowRequest,
+  APIResponse,
+  CreateRequest,
+} from "@/services/workflowService";
 
 // 새로 분리한 컴포넌트들
 import WorkflowHeader from "./components/WorkflowHeader";
@@ -30,6 +37,7 @@ import SavedWorkflowsPanel from "./components/SavedWorkflowsPanel";
 import SavedWorkflowViewer from "./components/SavedWorkflowViewer";
 import SideBar from "./components/Sidebar";
 import NodeConfigPanel from "./components/NodeConfigPanel";
+import WorkflowResultPanel from "./components/WorkflowResultPanel";
 
 type Tab = "new" | "saved";
 
@@ -54,6 +62,9 @@ function FlowEditor() {
 
   const [sideNodes, setSideNodes] = useState<Node[] | null>(null);
   const [configNodeId, setConfigNodeId] = useState<string | null>(null);
+  const [workflowResult, setWorkflowResult] = useState<APIResponse | null>(
+    null,
+  );
   const [savedConfigNodeId, setSavedConfigNodeId] = useState<string | null>(
     null,
   );
@@ -136,12 +147,38 @@ function FlowEditor() {
     [setSavedEdges],
   );
 
+  const handleTabChange = (tab: Tab) => {
+    if (tab === "saved" && activeTab === "new") {
+      if (nodes.length > 0 || edges.length > 0) {
+        if (!confirm("저장되지 않은 작업이 있습니다. 이동하시겠습니까?"))
+          return;
+      }
+      setNodes([]);
+      setEdges([]);
+      setTitle("");
+      setConfigNodeId(null);
+      setWorkflowResult(null);
+      setSelectedWorkflow(null);
+    }
+
+    if (tab === "new" && activeTab === "saved") {
+      setSelectedWorkflow(null);
+      setSavedNodes([]);
+      setSavedEdges([]);
+      setSavedConfigNodeId(null);
+      setWorkflowResult(null);
+    }
+
+    setActiveTab(tab);
+  };
+
   const handleReset = () => {
     if (confirm("정말로 초기화하시겠습니까?")) {
       setNodes([]);
       setEdges([]);
       setTitle("");
       setConfigNodeId(null);
+      setWorkflowResult(null);
     }
   };
 
@@ -227,8 +264,7 @@ function FlowEditor() {
         };
 
         const result = await runWorkflowJsonAsync(payload);
-        if (result.success) alert("워크플로우 저장 및 실행 성공");
-        else alert("워크플로우 저장 성공 (실행은 실패)");
+        setWorkflowResult(result);
       } else {
         alert("저장 실패!");
       }
@@ -263,6 +299,62 @@ function FlowEditor() {
     }
   };
 
+  // 자연어로 워크플로우 생성
+  const handleCreateWorkflow = async (input: string) => {
+    if (!input) throw new Error("입력이 없습니다.");
+
+    const body: CreateRequest = {
+      input: input,
+    };
+    const response = await createWorkflow(body);
+    if (response.success) {
+      const wf: Workflow = JSON.parse(response.workflowJson);
+
+      // node imageurl 처리
+      const nds = wf.nodes;
+      if (nds) {
+        const updatednds = nds.map((n) => {
+          const category = (n as any).category;
+
+          const nData = initialNodes.filter((x) => x.category === category)[0]
+            ?.data;
+
+          return {
+            ...n,
+            data: nData,
+          };
+        });
+        setNodes(updatednds);
+      }
+
+      if (wf.edges) {
+        const updatedEds = wf.edges.map((e) => {
+          const raw = e as any;
+          let sourceHandle: string | undefined;
+
+          if (raw.edgeType === "conditional") {
+            const sh = raw.sourceHandle;
+            // boolean true/false 또는 문자열 "true"/"false" 모두 처리
+            if (sh === true || sh === "true") sourceHandle = "true";
+            else if (sh === false || sh === "false") sourceHandle = "false";
+            // sourceHandle이 없으면 label로 fallback
+            else if (raw.label === "true") sourceHandle = "true";
+            else if (raw.label === "false") sourceHandle = "false";
+          }
+
+          return {
+            ...e,
+            markerEnd: { type: MarkerType.ArrowClosed },
+            ...(sourceHandle !== undefined && { sourceHandle }),
+          };
+        });
+        setEdges(updatedEds as any);
+      }
+    } else {
+      alert("워크플로우 생성 실패");
+    }
+  };
+
   return (
     <div
       style={{
@@ -278,7 +370,7 @@ function FlowEditor() {
       <WorkflowHeader
         activeTab={activeTab}
         selectedWorkflow={selectedWorkflow}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         title={title}
         setTitle={setTitle}
         onReset={handleReset}
@@ -299,6 +391,13 @@ function FlowEditor() {
             setConfigNodeId={setConfigNodeId}
             handleSaveNodeConfig={handleSaveNodeConfig}
             sideNodes={sideNodes}
+            handleCreate={handleCreateWorkflow}
+            bottomSlot={
+              <WorkflowResultPanel
+                result={workflowResult}
+                onClose={() => setWorkflowResult(null)}
+              />
+            }
           />
         ) : selectedWorkflow ? (
           <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
@@ -309,6 +408,12 @@ function FlowEditor() {
               onEdgesChange={onSavedEdgesChange}
               onConnect={onSavedConnect}
               onNodeDoubleClick={onSavedNodeDoubleClick}
+              bottomSlot={
+                <WorkflowResultPanel
+                  result={workflowResult}
+                  onClose={() => setWorkflowResult(null)}
+                />
+              }
             />
             {savedConfigNodeId ? (
               <NodeConfigPanel
@@ -331,7 +436,9 @@ function FlowEditor() {
                 onBack={() => {
                   setSelectedWorkflow(null);
                   setTitle("");
+                  setWorkflowResult(null);
                 }}
+                handleCreate={handleCreateWorkflow}
               />
             )}
           </div>
