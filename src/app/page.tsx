@@ -2,9 +2,6 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import {
-  ReactFlow,
-  MiniMap,
-  Background,
   ReactFlowProvider,
   useNodesState,
   useEdgesState,
@@ -17,42 +14,84 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { initialNodes } from "./components/CustomNodes";
-import { nodeTypes, edgeTypes } from "./interfaces/nodeTypes";
 import { Workflow } from "./interfaces/workflows";
 import { DnDProvider } from "./context/DnDContext";
 import {
   createWorkflow,
   runWorkflowJsonAsync,
 } from "@/services/workflowService";
-import type {
-  RunWorkflowRequest,
-  APIResponse,
-  CreateRequest,
-} from "@/services/workflowService";
+import type { APIResponse, CreateRequest } from "@/services/workflowService";
 
-// 새로 분리한 컴포넌트들
 import WorkflowHeader from "./components/WorkflowHeader";
 import WorkflowEditor from "./components/WorkflowEditor";
 import SavedWorkflowsPanel from "./components/SavedWorkflowsPanel";
 import SavedWorkflowViewer from "./components/SavedWorkflowViewer";
 import SideBar from "./components/Sidebar";
 import NodeConfigPanel from "./components/NodeConfigPanel";
-import WorkflowResultPanel from "./components/WorkflowResultPanel";
+import ChatPanel from "./components/ChatPanel";
 
 type Tab = "new" | "saved";
 
 let eid = 0;
 const getEdgeId = () => `dndEdge_${eid++}`;
 
+function resolveNodeType(node: any): string {
+  if (!node) return "";
+  return node.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
+}
+
+function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
+  const sourceEdgeCount: Record<string, number> = {};
+  const targetEdgeCount: Record<string, number> = {};
+  edges.forEach((edge) => {
+    const isConditional =
+      edge.sourceHandle === "true" || edge.sourceHandle === "false";
+    if (!isConditional) {
+      sourceEdgeCount[edge.source] = (sourceEdgeCount[edge.source] ?? 0) + 1;
+      targetEdgeCount[edge.target] = (targetEdgeCount[edge.target] ?? 0) + 1;
+    }
+  });
+  return edges.map((edge) => {
+    const isConditional =
+      edge.sourceHandle === "true" || edge.sourceHandle === "false";
+    let edgeType: "conditional" | "direct" | "fan_out" | "fan_in";
+    let route = "";
+    if (isConditional) {
+      edgeType = "conditional";
+      const eNode: any = nodes.find((x) => x.id === edge.source);
+      route =
+        edge.sourceHandle === "true"
+          ? (eNode?.parameters?.trueOutput ?? "")
+          : (eNode?.parameters?.falseOutput ?? "");
+    } else {
+      const outCount = sourceEdgeCount[edge.source] ?? 0;
+      const inCount = targetEdgeCount[edge.target] ?? 0;
+      if (outCount > 1) edgeType = "fan_out";
+      else if (inCount > 1) edgeType = "fan_in";
+      else edgeType = "direct";
+    }
+    return { ...edge, edgeType, route };
+  });
+}
+
+function extractResultText(result: APIResponse): string {
+  if (!result.success) return result.error ?? "알 수 없는 오류";
+  return (
+    result.outputs?.[0]?.Data?.text ??
+    result.outputs?.[0]?.data?.text ??
+    (result.outputs?.[0] != null
+      ? JSON.stringify(result.outputs[0], null, 2)
+      : "결과 없음")
+  );
+}
+
 function FlowEditor() {
   const [activeTab, setActiveTab] = useState<Tab>("new");
   const [title, setTitle] = useState("");
 
-  // 에디터용 (새 워크플로우)
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  // 뷰어용 (저장된 워크플로우)
   const [savedNodes, setSavedNodes, onSavedNodesChange] = useNodesState<Node>(
     [],
   );
@@ -62,12 +101,10 @@ function FlowEditor() {
 
   const [sideNodes, setSideNodes] = useState<Node[] | null>(null);
   const [configNodeId, setConfigNodeId] = useState<string | null>(null);
-  const [workflowResult, setWorkflowResult] = useState<APIResponse | null>(
-    null,
-  );
   const [savedConfigNodeId, setSavedConfigNodeId] = useState<string | null>(
     null,
   );
+  const [showSavedChat, setShowSavedChat] = useState(false);
   const [savedWorkflows, setSavedWorkflows] = useState<
     { id: string; name: string; fileName: string }[]
   >([]);
@@ -157,18 +194,14 @@ function FlowEditor() {
       setEdges([]);
       setTitle("");
       setConfigNodeId(null);
-      setWorkflowResult(null);
       setSelectedWorkflow(null);
     }
-
     if (tab === "new" && activeTab === "saved") {
       setSelectedWorkflow(null);
       setSavedNodes([]);
       setSavedEdges([]);
       setSavedConfigNodeId(null);
-      setWorkflowResult(null);
     }
-
     setActiveTab(tab);
   };
 
@@ -178,68 +211,24 @@ function FlowEditor() {
       setEdges([]);
       setTitle("");
       setConfigNodeId(null);
-      setWorkflowResult(null);
     }
   };
 
   const handleSave = async () => {
-    if (selectedWorkflow) {
-      console.log(`length : ${selectedWorkflow?.edges.length}`);
-      setTitle(selectedWorkflow.name);
-      setEdges(selectedWorkflow.edges);
-      setNodes(selectedWorkflow.nodes);
-    }
-
     if (title === "") {
       alert("워크플로우 제목을 입력해주세요.");
       return;
     }
-
     if (edges.length <= 0) {
       alert("최소 하나 이상의 연결(Edge)이 필요합니다.");
       return;
     }
 
-    // 엣지 타입 자동 계산 및 변환 로직
-    const sourceEdgeCount: Record<string, number> = {};
-    const targetEdgeCount: Record<string, number> = {};
-    edges.forEach((edge) => {
-      const isConditional =
-        edge.sourceHandle === "true" || edge.sourceHandle === "false";
-      if (!isConditional) {
-        sourceEdgeCount[edge.source] = (sourceEdgeCount[edge.source] ?? 0) + 1;
-        targetEdgeCount[edge.target] = (targetEdgeCount[edge.target] ?? 0) + 1;
-      }
-    });
-
-    const transformedEdges = edges.map((edge) => {
-      const isConditional =
-        edge.sourceHandle === "true" || edge.sourceHandle === "false";
-      let edgeType: "conditional" | "direct" | "fan_out" | "fan_in";
-      let route: string = "";
-
-      if (isConditional) {
-        edgeType = "conditional";
-        var eNode: any = nodes.filter((x) => x.id === edge.source)[0];
-
-        if (edge.sourceHandle === "true") route = eNode.parameters.trueOutput;
-        else route = eNode.parameters.falseOutput;
-      } else {
-        const outCount = sourceEdgeCount[edge.source] ?? 0;
-        const inCount = targetEdgeCount[edge.target] ?? 0;
-
-        if (outCount > 1) edgeType = "fan_out";
-        else if (inCount > 1) edgeType = "fan_in";
-        else edgeType = "direct";
-      }
-      return { ...edge, edgeType, route };
-    });
-
     const workflowData: Workflow = {
       id: `${crypto.randomUUID()}`,
       name: title,
       nodes: nodes,
-      edges: transformedEdges,
+      edges: buildTransformedEdges(edges, nodes) as any,
       description: `${title} 작업`,
       orgId: "org-001",
       isActive: true,
@@ -253,26 +242,49 @@ function FlowEditor() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(workflowData),
       });
-
-      if (response.ok) {
-        const triggerNode = nodes.find((n) => (n as any).category === "manual");
-        const triggerInput = (triggerNode as any)?.parameters?.input ?? "{}";
-
-        const payload: RunWorkflowRequest = {
-          definition: workflowData,
-          input: triggerInput,
-        };
-
-        const result = await runWorkflowJsonAsync(payload);
-        setWorkflowResult(result);
-      } else {
+      if (!response.ok) {
         alert("저장 실패!");
       }
     } catch (error) {
       console.error(error);
-      alert("처리 중 오류가 발생했습니다.");
+      alert("저장 중 오류가 발생했습니다.");
     }
   };
+
+  const handleTestNew = useCallback(
+    async (input: string): Promise<string> => {
+      if (nodes.length === 0) return "워크플로우가 비어 있습니다.";
+      const workflowData: Workflow = {
+        id: crypto.randomUUID(),
+        name: title || "test",
+        nodes,
+        edges: buildTransformedEdges(edges, nodes) as any,
+        description: title || "test",
+        orgId: "org-001",
+        isActive: true,
+        isDeleted: false,
+        version: "1.0.0",
+      };
+      const result = await runWorkflowJsonAsync({
+        definition: workflowData,
+        input,
+      });
+      return extractResultText(result);
+    },
+    [nodes, edges, title],
+  );
+
+  const handleTestSaved = useCallback(
+    async (input: string): Promise<string> => {
+      if (!selectedWorkflow) return "워크플로우를 선택해주세요.";
+      const result = await runWorkflowJsonAsync({
+        definition: selectedWorkflow,
+        input,
+      });
+      return extractResultText(result);
+    },
+    [selectedWorkflow],
+  );
 
   const handleSelectSavedWorkflow = async (wf: {
     id: string;
@@ -284,13 +296,20 @@ function FlowEditor() {
       if (!response.ok) throw new Error("파일 읽기 실패");
 
       const workflowJson = await response.json();
-      console.log("Selected workflow content:", workflowJson);
-
       const workflowData: Workflow = workflowJson;
-      console.log("workflowData:", workflowData.name);
+
       setSelectedWorkflow(workflowData);
       setSavedNodes((workflowData.nodes as any) ?? []);
-      setSavedEdges((workflowData.edges as any) ?? []);
+      setSavedEdges(
+        ((workflowData.edges as any[]) ?? []).map((e) => {
+          const cleaned: any = { ...e };
+          if (cleaned.targetHandle == null) delete cleaned.targetHandle;
+          if (cleaned.sourceHandle == null) delete cleaned.sourceHandle;
+          if (!cleaned.markerEnd)
+            cleaned.markerEnd = { type: MarkerType.ArrowClosed };
+          return cleaned;
+        }),
+      );
       setSavedConfigNodeId(null);
       setTitle(workflowData.name);
     } catch (error) {
@@ -299,30 +318,21 @@ function FlowEditor() {
     }
   };
 
-  // 자연어로 워크플로우 생성
   const handleCreateWorkflow = async (input: string) => {
     if (!input) throw new Error("입력이 없습니다.");
 
-    const body: CreateRequest = {
-      input: input,
-    };
+    const body: CreateRequest = { input };
     const response = await createWorkflow(body);
     if (response.success) {
       const wf: Workflow = JSON.parse(response.workflowJson);
 
-      // node imageurl 처리
       const nds = wf.nodes;
       if (nds) {
         const updatednds = nds.map((n) => {
           const category = (n as any).category;
-
           const nData = initialNodes.filter((x) => x.category === category)[0]
             ?.data;
-
-          return {
-            ...n,
-            data: nData,
-          };
+          return { ...n, data: nData };
         });
         setNodes(updatednds);
       }
@@ -334,16 +344,16 @@ function FlowEditor() {
 
           if (raw.edgeType === "conditional") {
             const sh = raw.sourceHandle;
-            // boolean true/false 또는 문자열 "true"/"false" 모두 처리
             if (sh === true || sh === "true") sourceHandle = "true";
             else if (sh === false || sh === "false") sourceHandle = "false";
-            // sourceHandle이 없으면 label로 fallback
             else if (raw.label === "true") sourceHandle = "true";
             else if (raw.label === "false") sourceHandle = "false";
           }
 
+          const { targetHandle: _th, sourceHandle: _sh, ...restE } = raw;
           return {
-            ...e,
+            ...restE,
+            type: "customEdge",
             markerEnd: { type: MarkerType.ArrowClosed },
             ...(sourceHandle !== undefined && { sourceHandle }),
           };
@@ -366,7 +376,6 @@ function FlowEditor() {
         color: "#fff",
       }}
     >
-      {/* 1. Header 영역 */}
       <WorkflowHeader
         activeTab={activeTab}
         selectedWorkflow={selectedWorkflow}
@@ -377,7 +386,6 @@ function FlowEditor() {
         onSave={handleSave}
       />
 
-      {/* 2. Body 영역 */}
       <main style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {activeTab === "new" ? (
           <WorkflowEditor
@@ -392,12 +400,7 @@ function FlowEditor() {
             handleSaveNodeConfig={handleSaveNodeConfig}
             sideNodes={sideNodes}
             handleCreate={handleCreateWorkflow}
-            bottomSlot={
-              <WorkflowResultPanel
-                result={workflowResult}
-                onClose={() => setWorkflowResult(null)}
-              />
-            }
+            onTest={handleTestNew}
           />
         ) : selectedWorkflow ? (
           <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
@@ -408,21 +411,27 @@ function FlowEditor() {
               onEdgesChange={onSavedEdgesChange}
               onConnect={onSavedConnect}
               onNodeDoubleClick={onSavedNodeDoubleClick}
-              bottomSlot={
-                <WorkflowResultPanel
-                  result={workflowResult}
-                  onClose={() => setWorkflowResult(null)}
-                />
-              }
             />
+            {showSavedChat && (
+              <ChatPanel
+                onSend={handleTestSaved}
+                onClose={() => setShowSavedChat(false)}
+                mode={
+                  (savedNodes as any[]).some(
+                    (n) => resolveNodeType(n) === "chat",
+                  )
+                    ? "chat"
+                    : "manual"
+                }
+              />
+            )}
             {savedConfigNodeId ? (
               <NodeConfigPanel
                 key={savedConfigNodeId}
                 nodeId={savedConfigNodeId}
-                category={
-                  (savedNodes.find((n) => n.id === savedConfigNodeId) as any)
-                    ?.category ?? ""
-                }
+                type={resolveNodeType(
+                  savedNodes.find((n) => n.id === savedConfigNodeId),
+                )}
                 initialParameters={
                   (savedNodes.find((n) => n.id === savedConfigNodeId) as any)
                     ?.parameters
@@ -436,9 +445,12 @@ function FlowEditor() {
                 onBack={() => {
                   setSelectedWorkflow(null);
                   setTitle("");
-                  setWorkflowResult(null);
+                  setShowSavedChat(false);
                 }}
                 handleCreate={handleCreateWorkflow}
+                onTest={handleTestSaved}
+                showChat={showSavedChat}
+                onToggleChat={() => setShowSavedChat((v) => !v)}
               />
             )}
           </div>

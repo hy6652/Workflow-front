@@ -270,9 +270,9 @@ export const CustomEdge = ({
 
 export const initialNodes = [
   {
-    id: "manual_trigger-node",
-    type: "imageNode",
-    category: "manual",
+    id: "manual_trigger_node",
+    category: "trigger", // 1차 분류 기준 (노드 목록에서 묶음 기준)
+    type: "manual", // 2차 분류 기준 - 세부 타입
     position: { x: 0, y: 0 },
     data: {
       label: "매뉴얼 트리거",
@@ -280,9 +280,19 @@ export const initialNodes = [
     },
   },
   {
+    id: "chat_trigger_node",
+    category: "trigger",
+    type: "chat",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "챗 트리거",
+      imageUrl: "nodeImages/touch_app.svg",
+    },
+  },
+  {
     id: "search_node",
-    type: "imageNode",
-    category: "azure_search",
+    category: "action",
+    type: "azure_search",
     position: { x: 0, y: 0 },
     data: {
       label: "Azure Search",
@@ -291,8 +301,8 @@ export const initialNodes = [
   },
   {
     id: "generate_answer",
-    type: "imageNode",
-    category: "llm_call",
+    category: "agent",
+    type: "llm_call",
     position: { x: 0, y: 0 },
     data: {
       label: "Agent 호출",
@@ -301,8 +311,8 @@ export const initialNodes = [
   },
   {
     id: "aggregator",
-    type: "imageNode",
-    category: "aggregator",
+    category: "utility",
+    type: "aggregator",
     position: { x: 0, y: 0 },
     data: {
       label: "Aggregator",
@@ -311,8 +321,8 @@ export const initialNodes = [
   },
   {
     id: "condition",
-    type: "imageNode",
-    category: "condition",
+    category: "control_flow",
+    type: "condition",
     position: { x: 0, y: 0 },
     data: {
       label: "if/else",
@@ -320,19 +330,9 @@ export const initialNodes = [
     },
   },
   {
-    id: "write_report",
-    type: "imageNode",
-    category: "report",
-    position: { x: 0, y: 0 },
-    data: {
-      label: "레포트 작성",
-      imageUrl: "nodeImages/call_split.svg",
-    },
-  },
-  {
     id: "autonomous",
-    type: "imageNode",
-    category: "autonomous_agent",
+    category: "agent",
+    type: "autonomous_agent",
     position: { x: 0, y: 0 },
     data: {
       label: "Autonomous Agent",
@@ -341,8 +341,8 @@ export const initialNodes = [
   },
   {
     id: "final_output",
-    type: "imageNode",
-    category: "output",
+    category: "action",
+    type: "output",
     position: { x: 0, y: 0 },
     data: {
       label: "최종 출력",

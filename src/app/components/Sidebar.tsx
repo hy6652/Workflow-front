@@ -1,6 +1,7 @@
 import { Node, useReactFlow, XYPosition } from "@xyflow/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { OnDropAction, useDnD, useDnDPosition } from "../context/DnDContext";
+
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
@@ -8,16 +9,12 @@ export interface NodeProps {
   nodes: Node[] | null;
   onBack?: () => void;
   handleCreate: (input: string) => void;
+  onTest?: (input: string) => Promise<string>;
+  showChat?: boolean;
+  onToggleChat?: () => void;
 }
 
 export default function SideBar(props: NodeProps) {
-  //   const [_, setType] = useDnD();
-
-  //   const onDragStart = (event: any, node: any) => {
-  //     setType!({ type: node.type, data: node.data });
-  //     event.dataTransfer.effectAllowed = "move";
-  //   };
-
   const { onDragStart, isDragging } = useDnD();
   const [showNLInput, setShowNLInput] = useState(false);
   const [nlText, setNlText] = useState("");
@@ -47,13 +44,13 @@ export default function SideBar(props: NodeProps) {
             imageUrl: imageUrl,
           },
         };
-
         setNodes((nds) => nds.concat(newNode));
         setType(null);
       };
     },
     [setNodes, setType],
   );
+
   return (
     <div
       style={{
@@ -62,8 +59,7 @@ export default function SideBar(props: NodeProps) {
         padding: "16px",
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
-        overflowY: "auto",
+        overflow: "hidden",
         flexShrink: 0,
       }}
     >
@@ -79,19 +75,28 @@ export default function SideBar(props: NodeProps) {
             padding: 0,
             textAlign: "left",
             marginBottom: "4px",
+            flexShrink: 0,
           }}
         >
           ← 목록
         </button>
       )}
+
       {showNLInput ? (
-        <>
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: "4px",
             }}
           >
             <button
@@ -147,15 +152,17 @@ export default function SideBar(props: NodeProps) {
           >
             생성
           </button>
-        </>
+        </div>
       ) : (
         <>
+          {/* 헤더 */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               marginBottom: "8px",
+              flexShrink: 0,
             }}
           >
             <span
@@ -180,6 +187,7 @@ export default function SideBar(props: NodeProps) {
               ✦
             </button>
           </div>
+
           {isDragging && (
             <DragGhost
               type={type}
@@ -187,60 +195,93 @@ export default function SideBar(props: NodeProps) {
               imageUrl={dragNode?.imageUrl}
             />
           )}
-          {props.nodes?.map((node: any, index) => (
-            <div
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid #333",
-                cursor: "grab",
-                backgroundColor: "#222",
-              }}
-              onPointerDown={(event) => {
-                setType(node.type);
-                setDragNode({
-                  label: node.data.label,
-                  imageUrl: node.data.imageUrl,
-                });
-                onDragStart(
-                  event,
-                  createAddNewNode(
-                    node.type,
-                    node.data.label,
-                    node.data.imageUrl,
-                    (node as any).category,
-                  ),
-                );
-              }}
-            >
+
+          {/* 노드 목록 */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            {props.nodes?.map((node: any, index) => (
               <div
+                key={index}
                 style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "20%",
-                  backgroundColor: "#000",
-                  border: "2px solid #fff",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
+                  gap: "12px",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #333",
+                  cursor: "grab",
+                  backgroundColor: "#222",
+                }}
+                onPointerDown={(event) => {
+                  setType(node.type);
+                  setDragNode({
+                    label: node.data.label,
+                    imageUrl: node.data.imageUrl,
+                  });
+                  onDragStart(
+                    event,
+                    createAddNewNode(
+                      node.type,
+                      node.data.label,
+                      node.data.imageUrl,
+                      node.category,
+                    ),
+                  );
                 }}
               >
-                <img
-                  src={node.data.imageUrl}
-                  alt={node.data.label}
-                  style={{ width: "18px", height: "18px" }}
-                />
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "20%",
+                    backgroundColor: "#000",
+                    border: "2px solid #fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <img
+                    src={node.data.imageUrl}
+                    alt={node.data.label}
+                    style={{ width: "18px", height: "18px" }}
+                  />
+                </div>
+                <span style={{ fontSize: "12px", color: "#fff" }}>
+                  {node.data.label}
+                </span>
               </div>
-              <span style={{ fontSize: "12px", color: "#fff" }}>
-                {node.data.label}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* 테스트하기 버튼 */}
+          {props.onTest && props.onToggleChat && (
+            <button
+              onClick={props.onToggleChat}
+              style={{
+                marginTop: "8px",
+                backgroundColor: props.showChat ? "#333" : "#fff",
+                border: "none",
+                borderRadius: "4px",
+                color: props.showChat ? "#aaa" : "#000",
+                cursor: "pointer",
+                fontSize: "11px",
+                fontWeight: "bold",
+                padding: "7px",
+                flexShrink: 0,
+              }}
+            >
+              {props.showChat ? "테스트 닫기" : "테스트하기"}
+            </button>
+          )}
         </>
       )}
     </div>
@@ -253,7 +294,6 @@ interface DragGhostProps {
   imageUrl?: string;
 }
 
-// 드래그 할 때 고스트 효과
 export function DragGhost({ type, label, imageUrl }: DragGhostProps) {
   const { position } = useDnDPosition();
 

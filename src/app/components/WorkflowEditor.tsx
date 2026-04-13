@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, ReactNode } from "react";
+import React, { useRef, useState } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -14,6 +14,15 @@ import {
 import { nodeTypes, edgeTypes } from "../interfaces/nodeTypes";
 import SideBar from "./Sidebar";
 import NodeConfigPanel from "./NodeConfigPanel";
+import ChatPanel from "./ChatPanel";
+
+/** 노드의 비즈니스 타입을 반환합니다.
+ * 새 노드: type = "manual" 등 (비즈니스 타입)
+ * 구 JSON 노드: type = "imageNode", category에 비즈니스 타입 존재 */
+function resolveNodeType(node: any): string {
+  if (!node) return "";
+  return node.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
+}
 
 interface WorkflowEditorProps {
   nodes: Node[];
@@ -29,8 +38,8 @@ interface WorkflowEditorProps {
     parameters: Record<string, any>,
   ) => void;
   sideNodes: Node[] | null;
-  bottomSlot?: ReactNode;
   handleCreate: (input: string) => void;
+  onTest?: (input: string) => Promise<string>;
 }
 
 export default function WorkflowEditor({
@@ -44,10 +53,17 @@ export default function WorkflowEditor({
   setConfigNodeId,
   handleSaveNodeConfig,
   sideNodes,
-  bottomSlot,
   handleCreate,
+  onTest,
 }: WorkflowEditorProps) {
   const reactFlowWrapper = useRef(null);
+  const [showChat, setShowChat] = useState(false);
+
+  const panelMode = (nodes as any[]).some(
+    (n) => resolveNodeType(n) === "chat",
+  )
+    ? "chat"
+    : "manual";
 
   return (
     <div
@@ -60,7 +76,7 @@ export default function WorkflowEditor({
           <ReactFlow
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            nodes={nodes}
+            nodes={nodes.map((n) => ({ ...n, type: "imageNode" }))}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -71,16 +87,21 @@ export default function WorkflowEditor({
             <Background />
           </ReactFlow>
         </div>
-        {bottomSlot}
       </div>
+
+      {showChat && onTest && (
+        <ChatPanel
+          onSend={onTest}
+          onClose={() => setShowChat(false)}
+          mode={panelMode}
+        />
+      )}
 
       {configNodeId ? (
         <NodeConfigPanel
           key={configNodeId}
           nodeId={configNodeId}
-          category={
-            (nodes.find((n) => n.id === configNodeId) as any)?.category ?? ""
-          }
+          type={resolveNodeType(nodes.find((n) => n.id === configNodeId))}
           initialParameters={
             (nodes.find((n) => n.id === configNodeId) as any)?.parameters
           }
@@ -88,7 +109,13 @@ export default function WorkflowEditor({
           onClose={() => setConfigNodeId(null)}
         />
       ) : (
-        <SideBar nodes={sideNodes} handleCreate={handleCreate} />
+        <SideBar
+          nodes={sideNodes}
+          handleCreate={handleCreate}
+          onTest={onTest}
+          showChat={showChat}
+          onToggleChat={() => setShowChat((v) => !v)}
+        />
       )}
     </div>
   );

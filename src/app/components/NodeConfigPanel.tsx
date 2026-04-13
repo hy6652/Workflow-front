@@ -19,7 +19,7 @@ type Expression = {
 
 interface Props {
   nodeId: string;
-  category: string;
+  type: string;
   initialParameters?: Record<string, any>;
   onSave: (nodeId: string, parameters: Record<string, any>) => void;
   onClose: () => void;
@@ -70,7 +70,7 @@ const EMPTY_TOOL: ToolItem = {
 
 export default function NodeConfigPanel({
   nodeId,
-  category,
+  type,
   initialParameters,
   onSave,
   onClose,
@@ -95,7 +95,12 @@ export default function NodeConfigPanel({
   const [llmPrompt, setLlmPrompt] = useState<string>(
     initialParameters?.prompt ?? "",
   );
-  const [outputToken, setOutputToken] = useState<number | null>(null);
+  const [outputToken, setOutputToken] = useState<number | null>(
+    initialParameters?.outputToken ?? null,
+  );
+  const [llmOutputToken, setLLMOutputToken] = useState<number | null>(
+    initialParameters?.outputToken ?? null,
+  );
 
   // condition
   const [trueOutput, setTrueOutput] = useState<string>(
@@ -116,15 +121,21 @@ export default function NodeConfigPanel({
 
   const handleSave = () => {
     let parameters: Record<string, any> = {};
-    if (category === "manual") {
-      parameters = { input: inputJson };
-    } else if (category === "autonomous_agent") {
-      parameters = { systemPrompt: agentSystemPrompt, tools };
-    } else if (category === "llm_call") {
-      parameters = { systemPrompt: llmSystemPrompt, prompt: llmPrompt };
-    } else if (category === "condition") {
+    if (type === "autonomous_agent") {
+      parameters = {
+        systemPrompt: agentSystemPrompt,
+        outputToken: outputToken,
+        tools,
+      };
+    } else if (type === "llm_call") {
+      parameters = {
+        systemPrompt: llmSystemPrompt,
+        prompt: llmPrompt,
+        outputToken: llmOutputToken,
+      };
+    } else if (type === "condition") {
       parameters = { trueOutput, falseOutput, expression };
-    } else if (category === "azure_search") {
+    } else if (type === "azure_search") {
       parameters = { top, queryField };
     }
     onSave(nodeId, parameters);
@@ -139,26 +150,41 @@ export default function NodeConfigPanel({
     );
 
   const renderForm = () => {
-    if (category === "manual") {
+    if (type === "manual") {
       return (
-        <div style={fieldStyle}>
-          <span style={labelStyle}>Input (JSON)</span>
-          <textarea
-            value={inputJson}
-            onChange={(e) => setInputJson(e.target.value)}
-            rows={6}
-            placeholder={'{"key": "value"}'}
-            style={{
-              ...inputStyle,
-              resize: "vertical",
-              fontFamily: "monospace",
-            }}
-          />
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#666",
+            lineHeight: "1.6",
+            padding: "8px 0",
+          }}
+        >
+          별도 설정 없음.
+          <br />
+          버튼 클릭 등 외부 이벤트로 실행됩니다.
         </div>
       );
     }
 
-    if (category === "autonomous_agent") {
+    if (type === "chat") {
+      return (
+        <div
+          style={{
+            fontSize: "11px",
+            color: "#666",
+            lineHeight: "1.6",
+            padding: "8px 0",
+          }}
+        >
+          별도 설정 없음.
+          <br />
+          테스트 패널의 채팅 입력이 이 트리거로 전달됩니다.
+        </div>
+      );
+    }
+
+    if (type === "autonomous_agent") {
       return (
         <>
           <div style={fieldStyle}>
@@ -168,6 +194,15 @@ export default function NodeConfigPanel({
               onChange={(e) => setAgentSystemPrompt(e.target.value)}
               rows={4}
               style={{ ...inputStyle, resize: "vertical" }}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Output Token</span>
+            <input
+              type="number"
+              value={outputToken ?? ""}
+              onChange={(e) => setOutputToken(e.target.value === "" ? null : Number(e.target.value))}
+              style={inputStyle}
             />
           </div>
           <div style={fieldStyle}>
@@ -252,7 +287,7 @@ export default function NodeConfigPanel({
       );
     }
 
-    if (category === "llm_call") {
+    if (type === "llm_call") {
       return (
         <>
           <div style={fieldStyle}>
@@ -276,9 +311,9 @@ export default function NodeConfigPanel({
           <div style={fieldStyle}>
             <span style={labelStyle}>Output Token</span>
             <input
-              type="text"
-              value={trueOutput}
-              onChange={(e) => setOutputToken(Number(e.target.value))}
+              type="number"
+              value={llmOutputToken ?? ""}
+              onChange={(e) => setLLMOutputToken(e.target.value === "" ? null : Number(e.target.value))}
               style={inputStyle}
             />
           </div>
@@ -286,7 +321,7 @@ export default function NodeConfigPanel({
       );
     }
 
-    if (category === "condition") {
+    if (type === "condition") {
       return (
         <>
           <div style={fieldStyle}>
@@ -343,7 +378,7 @@ export default function NodeConfigPanel({
       );
     }
 
-    if (category === "azure_search") {
+    if (type === "azure_search") {
       return (
         <>
           <div style={fieldStyle}>
@@ -432,7 +467,7 @@ export default function NodeConfigPanel({
           paddingBottom: "8px",
         }}
       >
-        {category}
+        {type}
       </div>
 
       {/* 폼 */}
