@@ -1,3 +1,5 @@
+"use client";
+
 import { useReactFlow, XYPosition } from "@xyflow/react";
 import {
   createContext,

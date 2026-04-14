@@ -14,7 +14,9 @@
       "Bash(mv /c/personal/workflow-temp/.[^.]* /c/personal/Workflow-front/)",
       "Bash(rm -rf /c/personal/workflow-temp)",
       "mcp__ide__getDiagnostics",
-      "Bash(xargs wc:*)"
+      "Bash(xargs wc:*)",
+      "Bash(node -e \"const m = require\\('react-server-dom-webpack/server'\\); console.log\\(typeof m.createClientModuleProxy\\);\")",
+      "Bash(cat .env*)"
     ]
   }
 }

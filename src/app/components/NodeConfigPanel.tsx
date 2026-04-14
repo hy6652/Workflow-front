@@ -114,17 +114,23 @@ export default function NodeConfigPanel({
   );
 
   // while
-  const [whileExpression, setWhileExpression] = useState<Expression>(
-    initialParameters?.expression ?? { field: "", op: "", value: "" },
-  );
   const [maxIterations, setMaxIterations] = useState<number>(
     initialParameters?.maxIterations ?? 10,
   );
+  const [iterateOver, setIterateOver] = useState<string>(
+    initialParameters?.iterateOver ?? "",
+  );
+  const [doneCondition, setDoneCondition] = useState<Expression>(
+    initialParameters?.doneCondition ?? { field: "", op: "", value: "" },
+  );
+  const [breakCondition, setBreakCondition] = useState<Expression>(
+    initialParameters?.breakCondition ?? { field: "", op: "", value: "" },
+  );
 
   // azure_search
-  const [top, setTop] = useState<number>(initialParameters?.top ?? 0);
+  const [top, setTop] = useState<number>(initialParameters?.top ?? 5);
   const [queryField, setQueryField] = useState<string>(
-    initialParameters?.queryField ?? "",
+    initialParameters?.queryField ?? "question",
   );
 
   const handleSave = () => {
@@ -144,7 +150,10 @@ export default function NodeConfigPanel({
     } else if (type === "condition") {
       parameters = { trueOutput, falseOutput, expression };
     } else if (type === "while") {
-      parameters = { expression: whileExpression, maxIterations };
+      parameters = { maxIterations };
+      if (iterateOver.trim()) parameters.iterateOver = iterateOver.trim();
+      if (doneCondition.field.trim()) parameters.doneCondition = doneCondition;
+      if (breakCondition.field.trim()) parameters.breakCondition = breakCondition;
     } else if (type === "azure_search") {
       parameters = { top, queryField };
     }
@@ -389,40 +398,44 @@ export default function NodeConfigPanel({
     }
 
     if (type === "while") {
+      const expressionBlock = (
+        label: string,
+        expr: Expression,
+        setExpr: React.Dispatch<React.SetStateAction<Expression>>,
+      ) => (
+        <div style={fieldStyle}>
+          <span style={labelStyle}>{label}</span>
+          <div
+            style={{
+              border: "1px solid #333",
+              borderRadius: "6px",
+              padding: "8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+            }}
+          >
+            {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
+              <div key={k} style={fieldStyle}>
+                <span style={{ ...labelStyle, fontSize: "10px" }}>
+                  {k === "op" ? "op  (gt, le, equals …)" : k}
+                </span>
+                <input
+                  type="text"
+                  value={expr[k]}
+                  onChange={(e) =>
+                    setExpr((prev) => ({ ...prev, [k]: e.target.value }))
+                  }
+                  style={inputStyle}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
       return (
         <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>종료 조건</span>
-            <div
-              style={{
-                border: "1px solid #333",
-                borderRadius: "6px",
-                padding: "8px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-              }}
-            >
-              {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
-                <div key={k} style={fieldStyle}>
-                  <span style={{ ...labelStyle, fontSize: "10px" }}>
-                    {k === "op" ? "op  (gt, le, equals …)" : k}
-                  </span>
-                  <input
-                    type="text"
-                    value={whileExpression[k]}
-                    onChange={(e) =>
-                      setWhileExpression((prev) => ({
-                        ...prev,
-                        [k]: e.target.value,
-                      }))
-                    }
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
           <div style={fieldStyle}>
             <span style={labelStyle}>Max Iterations</span>
             <input
@@ -432,6 +445,29 @@ export default function NodeConfigPanel({
               style={inputStyle}
             />
           </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>
+              iterateOver
+              <span style={{ color: "#555", marginLeft: "4px" }}>(선택)</span>
+            </span>
+            <input
+              type="text"
+              value={iterateOver}
+              onChange={(e) => setIterateOver(e.target.value)}
+              placeholder="배열 필드명 (예: items)"
+              style={{ ...inputStyle, color: iterateOver ? "#fff" : "#555" }}
+            />
+          </div>
+          {expressionBlock(
+            "doneCondition (선택 · done 엣지)",
+            doneCondition,
+            setDoneCondition,
+          )}
+          {expressionBlock(
+            "breakCondition (선택 · break 엣지)",
+            breakCondition,
+            setBreakCondition,
+          )}
         </>
       );
     }

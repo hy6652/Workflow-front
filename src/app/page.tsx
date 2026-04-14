@@ -32,36 +32,53 @@ import ChatPanel from "./components/ChatPanel";
 
 type Tab = "new" | "saved";
 
-const getEdgeId = () => `edge_${crypto.randomUUID()}`;
+let edgeCount = 1;
+const getEdgeId = () => `edge_${edgeCount++}`;
 
 function resolveNodeType(node: any): string {
   if (!node) return "";
   return node.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
 }
 
+function resolveType(node: any): string {
+  return node?.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
+}
+
 function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
+  const isConditionalHandle = (handle: string | null | undefined) =>
+    handle === "true" || handle === "false" || handle === "done" || handle === "loop";
+
+  // while 노드는 초기 입력 + loop 귀환으로 항상 두 개의 incoming edge가 생기므로
+  // fan_in 카운트에서 제외하고 항상 direct로 처리
+  const whileNodeIds = new Set(
+    nodes.filter((n) => resolveType(n) === "while").map((n) => n.id),
+  );
+
   const sourceEdgeCount: Record<string, number> = {};
   const targetEdgeCount: Record<string, number> = {};
   edges.forEach((edge) => {
-    const isConditional =
-      edge.sourceHandle === "true" || edge.sourceHandle === "false";
-    if (!isConditional) {
+    if (!isConditionalHandle(edge.sourceHandle) && !whileNodeIds.has(edge.target)) {
       sourceEdgeCount[edge.source] = (sourceEdgeCount[edge.source] ?? 0) + 1;
       targetEdgeCount[edge.target] = (targetEdgeCount[edge.target] ?? 0) + 1;
     }
   });
+
   return edges.map((edge) => {
-    const isConditional =
-      edge.sourceHandle === "true" || edge.sourceHandle === "false";
     let edgeType: "conditional" | "direct" | "fan_out" | "fan_in";
     let route = "";
-    if (isConditional) {
+    if (isConditionalHandle(edge.sourceHandle)) {
       edgeType = "conditional";
-      const eNode: any = nodes.find((x) => x.id === edge.source);
-      route =
-        edge.sourceHandle === "true"
-          ? (eNode?.parameters?.trueOutput ?? "")
-          : (eNode?.parameters?.falseOutput ?? "");
+      if (edge.sourceHandle === "true" || edge.sourceHandle === "false") {
+        const eNode: any = nodes.find((x) => x.id === edge.source);
+        route =
+          edge.sourceHandle === "true"
+            ? (eNode?.parameters?.trueOutput ?? "")
+            : (eNode?.parameters?.falseOutput ?? "");
+      } else {
+        route = edge.sourceHandle!;
+      }
+    } else if (whileNodeIds.has(edge.target)) {
+      edgeType = "direct";
     } else {
       const outCount = sourceEdgeCount[edge.source] ?? 0;
       const inCount = targetEdgeCount[edge.target] ?? 0;
@@ -264,6 +281,7 @@ function FlowEditor() {
         isDeleted: false,
         version: "1.0.0",
       };
+      console.log(`workflow : ${JSON.stringify(workflowData)}`);
       const result = await runWorkflowJsonAsync({
         definition: workflowData,
         input,

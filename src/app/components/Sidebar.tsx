@@ -1,8 +1,11 @@
+"use client";
+
 import { Node, useReactFlow, XYPosition } from "@xyflow/react";
 import { useCallback, useState } from "react";
 import { OnDropAction, useDnD, useDnDPosition } from "../context/DnDContext";
 
-const getId = () => `node_${crypto.randomUUID()}`;
+let nodeCount = 1;
+const getId = () => `node_${nodeCount++}`;
 
 const CATEGORY_LABELS: Record<string, string> = {
   trigger: "트리거",
