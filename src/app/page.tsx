@@ -32,8 +32,7 @@ import ChatPanel from "./components/ChatPanel";
 
 type Tab = "new" | "saved";
 
-let eid = 0;
-const getEdgeId = () => `dndEdge_${eid++}`;
+const getEdgeId = () => `edge_${crypto.randomUUID()}`;
 
 function resolveNodeType(node: any): string {
   if (!node) return "";

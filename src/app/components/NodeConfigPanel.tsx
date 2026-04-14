@@ -113,6 +113,14 @@ export default function NodeConfigPanel({
     initialParameters?.expression ?? { field: "", op: "", value: "" },
   );
 
+  // while
+  const [whileExpression, setWhileExpression] = useState<Expression>(
+    initialParameters?.expression ?? { field: "", op: "", value: "" },
+  );
+  const [maxIterations, setMaxIterations] = useState<number>(
+    initialParameters?.maxIterations ?? 10,
+  );
+
   // azure_search
   const [top, setTop] = useState<number>(initialParameters?.top ?? 0);
   const [queryField, setQueryField] = useState<string>(
@@ -135,6 +143,8 @@ export default function NodeConfigPanel({
       };
     } else if (type === "condition") {
       parameters = { trueOutput, falseOutput, expression };
+    } else if (type === "while") {
+      parameters = { expression: whileExpression, maxIterations };
     } else if (type === "azure_search") {
       parameters = { top, queryField };
     }
@@ -373,6 +383,54 @@ export default function NodeConfigPanel({
                 </div>
               ))}
             </div>
+          </div>
+        </>
+      );
+    }
+
+    if (type === "while") {
+      return (
+        <>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>종료 조건</span>
+            <div
+              style={{
+                border: "1px solid #333",
+                borderRadius: "6px",
+                padding: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+              }}
+            >
+              {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
+                <div key={k} style={fieldStyle}>
+                  <span style={{ ...labelStyle, fontSize: "10px" }}>
+                    {k === "op" ? "op  (gt, le, equals …)" : k}
+                  </span>
+                  <input
+                    type="text"
+                    value={whileExpression[k]}
+                    onChange={(e) =>
+                      setWhileExpression((prev) => ({
+                        ...prev,
+                        [k]: e.target.value,
+                      }))
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Max Iterations</span>
+            <input
+              type="number"
+              value={maxIterations}
+              onChange={(e) => setMaxIterations(Number(e.target.value))}
+              style={inputStyle}
+            />
           </div>
         </>
       );

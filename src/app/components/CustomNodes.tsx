@@ -16,7 +16,10 @@ export const ImageNode = (props: any) => {
   const [hovered, setHovered] = useState(false);
 
   const currentNode = nodes.find((n) => n.id === props.id);
+  const rawType = (currentNode as any)?.type as string | undefined;
   const category = (currentNode as any)?.category as string | undefined;
+  // 구 JSON 노드: type="imageNode", category=비즈니스타입 → category로 fallback
+  const type = rawType === "imageNode" ? (category ?? "") : (rawType ?? "");
 
   const onDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -111,7 +114,7 @@ export const ImageNode = (props: any) => {
           <Handle type="target" position={Position.Left} />
         )}
 
-        {category === "condition" ? (
+        {type === "condition" ? (
           <>
             <Handle
               type="source"
@@ -158,6 +161,53 @@ export const ImageNode = (props: any) => {
               false
             </span>
           </>
+        ) : type === "while" ? (
+          <>
+            <Handle
+              type="source"
+              position={Position.Right}
+              id="done"
+              style={{ top: "25%" }}
+            />
+            <Handle
+              type="source"
+              position={Position.Right}
+              id="loop"
+              style={{ top: "75%" }}
+            />
+            <span
+              style={{
+                backgroundColor: "#808080",
+                padding: "0px 2px",
+                borderRadius: "20%",
+                position: "absolute",
+                right: "-28px",
+                top: "12%",
+                fontSize: "8px",
+                color: "#BEBEBE",
+                zIndex: 10,
+                pointerEvents: "none",
+              }}
+            >
+              done
+            </span>
+            <span
+              style={{
+                backgroundColor: "#808080",
+                padding: "0px 2px",
+                borderRadius: "20%",
+                position: "absolute",
+                right: "-26px",
+                top: "63%",
+                fontSize: "8px",
+                color: "#BEBEBE",
+                zIndex: 10,
+                pointerEvents: "none",
+              }}
+            >
+              loop
+            </span>
+          </>
         ) : (
           <Handle type="source" position={Position.Right} />
         )}
@@ -179,6 +229,8 @@ export const ImageNode = (props: any) => {
 // custom edge 설정
 export const CustomEdge = ({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -191,14 +243,45 @@ export const CustomEdge = ({
   const { setEdges } = useReactFlow();
   const [hovered, setHovered] = useState(false);
 
-  const [edgePath, labelX, labelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+  const isSelfLoop = source === target;
+  const isBackwards = !isSelfLoop && sourceX > targetX;
+
+  let edgePath: string;
+  let labelX: number;
+  let labelY: number;
+
+  if (isSelfLoop) {
+    // 자기 자신으로 연결: 위쪽으로 호를 그림
+    const loopW = 60;
+    const loopH = 80;
+    edgePath = `M ${sourceX} ${sourceY} C ${sourceX + loopW} ${sourceY - loopH}, ${targetX - loopW} ${targetY - loopH}, ${targetX} ${targetY}`;
+    labelX = (sourceX + targetX) / 2;
+    labelY = Math.min(sourceY, targetY) - loopH;
+  } else if (isBackwards) {
+    // 역방향 연결(루프 귀환): 핸들에서 수평으로 벗어난 뒤 아래로 꺾이는 직각 경로
+    const gap = 28; // 핸들에서 벗어나는 수평 거리
+    const dx = sourceX - targetX;
+    const bottomY = Math.max(sourceY, targetY) + Math.max(60, dx * 0.4);
+    edgePath = [
+      `M ${sourceX} ${sourceY}`,
+      `L ${sourceX + gap} ${sourceY}`,
+      `L ${sourceX + gap} ${bottomY}`,
+      `L ${targetX - gap} ${bottomY}`,
+      `L ${targetX - gap} ${targetY}`,
+      `L ${targetX} ${targetY}`,
+    ].join(" ");
+    labelX = (sourceX + targetX) / 2;
+    labelY = bottomY;
+  } else {
+    [edgePath, labelX, labelY] = getBezierPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+    });
+  }
 
   const onDelete = (e: React.MouseEvent) => {
     e.stopPropagation();

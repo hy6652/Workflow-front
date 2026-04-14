@@ -2,8 +2,7 @@ import { Node, useReactFlow, XYPosition } from "@xyflow/react";
 import { useCallback, useState } from "react";
 import { OnDropAction, useDnD, useDnDPosition } from "../context/DnDContext";
 
-let id = 0;
-const getId = () => `dndnode_${id++}`;
+const getId = () => `node_${crypto.randomUUID()}`;
 
 const CATEGORY_LABELS: Record<string, string> = {
   trigger: "트리거",

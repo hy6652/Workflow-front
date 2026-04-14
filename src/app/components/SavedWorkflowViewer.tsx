@@ -37,7 +37,7 @@ export default function SavedWorkflowViewer({
       <ReactFlow
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        nodes={nodes.map((n) => ({ ...n, type: "imageNode" }))}
+        nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
