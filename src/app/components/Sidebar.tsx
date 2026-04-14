@@ -5,6 +5,14 @@ import { OnDropAction, useDnD, useDnDPosition } from "../context/DnDContext";
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
+const CATEGORY_LABELS: Record<string, string> = {
+  trigger: "트리거",
+  action: "액션",
+  agent: "에이전트",
+  utility: "유틸리티",
+  control_flow: "제어 흐름",
+};
+
 export interface NodeProps {
   nodes: Node[] | null;
   onBack?: () => void;
@@ -23,8 +31,32 @@ export default function SideBar(props: NodeProps) {
     label: string;
     imageUrl: string;
   } | null>(null);
+  // 닫힌 카테고리 목록 (기본 모두 열림)
+  const [closedCategories, setClosedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   const { setNodes } = useReactFlow();
+
+  const toggleCategory = (cat: string) => {
+    setClosedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  };
+
+  // nodes를 category 기준으로 그룹핑 (삽입 순서 유지)
+  const groupedNodes = (props.nodes ?? []).reduce(
+    (acc, node: any) => {
+      const cat: string = node.category ?? "기타";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(node);
+      return acc;
+    },
+    {} as Record<string, any[]>,
+  );
 
   const createAddNewNode = useCallback(
     (
@@ -39,10 +71,7 @@ export default function SideBar(props: NodeProps) {
           type: nodeType,
           category,
           position,
-          data: {
-            label: `${label}`,
-            imageUrl: imageUrl,
-          },
+          data: { label: `${label}`, imageUrl },
         };
         setNodes((nds) => nds.concat(newNode));
         setType(null);
@@ -196,70 +225,127 @@ export default function SideBar(props: NodeProps) {
             />
           )}
 
-          {/* 노드 목록 */}
+          {/* 카테고리별 노드 목록 */}
           <div
             style={{
               flex: 1,
               overflowY: "auto",
               display: "flex",
               flexDirection: "column",
-              gap: "8px",
+              gap: "4px",
             }}
           >
-            {props.nodes?.map((node: any, index) => (
-              <div
-                key={index}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #333",
-                  cursor: "grab",
-                  backgroundColor: "#222",
-                }}
-                onPointerDown={(event) => {
-                  setType(node.type);
-                  setDragNode({
-                    label: node.data.label,
-                    imageUrl: node.data.imageUrl,
-                  });
-                  onDragStart(
-                    event,
-                    createAddNewNode(
-                      node.type,
-                      node.data.label,
-                      node.data.imageUrl,
-                      node.category,
-                    ),
-                  );
-                }}
-              >
-                <div
-                  style={{
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "20%",
-                    backgroundColor: "#000",
-                    border: "2px solid #fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <img
-                    src={node.data.imageUrl}
-                    alt={node.data.label}
-                    style={{ width: "18px", height: "18px" }}
-                  />
+            {Object.entries(groupedNodes).map(([category, categoryNodes]) => {
+              const isOpen = !closedCategories.has(category);
+              return (
+                <div key={category}>
+                  {/* 카테고리 헤더 */}
+                  <div
+                    onClick={() => toggleCategory(category)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "5px 4px",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      borderRadius: "4px",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor =
+                        "#222";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor =
+                        "transparent";
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: "#666",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      {CATEGORY_LABELS[category] ?? category}
+                    </span>
+                    <span style={{ fontSize: "10px", color: "#555" }}>
+                      {isOpen ? "▾" : "▸"}
+                    </span>
+                  </div>
+
+                  {/* 카테고리 내 노드 목록 */}
+                  {isOpen && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "4px",
+                        paddingLeft: "4px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {categoryNodes.map((node: any, index: number) => (
+                        <div
+                          key={index}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            padding: "8px 10px",
+                            borderRadius: "8px",
+                            border: "1px solid #2a2a2a",
+                            cursor: "grab",
+                            backgroundColor: "#1e1e1e",
+                          }}
+                          onPointerDown={(event) => {
+                            setType(node.type);
+                            setDragNode({
+                              label: node.data.label,
+                              imageUrl: node.data.imageUrl,
+                            });
+                            onDragStart(
+                              event,
+                              createAddNewNode(
+                                node.type,
+                                node.data.label,
+                                node.data.imageUrl,
+                                node.category,
+                              ),
+                            );
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "30px",
+                              height: "30px",
+                              borderRadius: "20%",
+                              backgroundColor: "#000",
+                              border: "2px solid #fff",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <img
+                              src={node.data.imageUrl}
+                              alt={node.data.label}
+                              style={{ width: "16px", height: "16px" }}
+                            />
+                          </div>
+                          <span style={{ fontSize: "11px", color: "#ccc" }}>
+                            {node.data.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <span style={{ fontSize: "12px", color: "#fff" }}>
-                  {node.data.label}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* 테스트하기 버튼 */}
@@ -294,7 +380,7 @@ interface DragGhostProps {
   imageUrl?: string;
 }
 
-export function DragGhost({ type, label, imageUrl }: DragGhostProps) {
+export function DragGhost({ label, imageUrl }: DragGhostProps) {
   const { position } = useDnDPosition();
 
   if (!position) return null;

@@ -330,6 +330,26 @@ export const initialNodes = [
     },
   },
   {
+    id: "while_loop",
+    category: "control_flow",
+    type: "while",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "while문",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
+  {
+    id: "for_loop",
+    category: "control_flow",
+    type: "for",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "for문",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
+  {
     id: "autonomous",
     category: "agent",
     type: "autonomous_agent",

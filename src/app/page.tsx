@@ -329,9 +329,8 @@ function FlowEditor() {
       const nds = wf.nodes;
       if (nds) {
         const updatednds = nds.map((n) => {
-          const category = (n as any).category;
-          const nData = initialNodes.filter((x) => x.category === category)[0]
-            ?.data;
+          const type = (n as any).type;
+          const nData = initialNodes.filter((x) => x.type === type)[0]?.data;
           return { ...n, data: nData };
         });
         setNodes(updatednds);
