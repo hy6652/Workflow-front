@@ -118,7 +118,7 @@ export default function WorkflowHeader({
             fontWeight: "bold",
           }}
         >
-          저장 및 실행
+          저장
         </button>
       </div>
     </header>

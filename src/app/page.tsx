@@ -46,7 +46,10 @@ function resolveType(node: any): string {
 
 function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
   const isConditionalHandle = (handle: string | null | undefined) =>
-    handle === "true" || handle === "false" || handle === "done" || handle === "loop";
+    handle === "true" ||
+    handle === "false" ||
+    handle === "done" ||
+    handle === "loop";
 
   // while 노드는 초기 입력 + loop 귀환으로 항상 두 개의 incoming edge가 생기므로
   // fan_in 카운트에서 제외하고 항상 direct로 처리
@@ -57,7 +60,10 @@ function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
   const sourceEdgeCount: Record<string, number> = {};
   const targetEdgeCount: Record<string, number> = {};
   edges.forEach((edge) => {
-    if (!isConditionalHandle(edge.sourceHandle) && !whileNodeIds.has(edge.target)) {
+    if (
+      !isConditionalHandle(edge.sourceHandle) &&
+      !whileNodeIds.has(edge.target)
+    ) {
       sourceEdgeCount[edge.source] = (sourceEdgeCount[edge.source] ?? 0) + 1;
       targetEdgeCount[edge.target] = (targetEdgeCount[edge.target] ?? 0) + 1;
     }
@@ -260,7 +266,9 @@ function FlowEditor() {
       });
       if (!response.ok) {
         alert("저장 실패!");
+        return;
       }
+      alert("저장 완료");
     } catch (error) {
       console.error(error);
       alert("저장 중 오류가 발생했습니다.");
@@ -356,14 +364,18 @@ function FlowEditor() {
       if (wf.edges) {
         const updatedEds = wf.edges.map((e) => {
           const raw = e as any;
-          let sourceHandle: string | undefined;
+          let handle: string | undefined;
 
           if (raw.edgeType === "conditional") {
-            const sh = raw.sourceHandle;
-            if (sh === true || sh === "true") sourceHandle = "true";
-            else if (sh === false || sh === "false") sourceHandle = "false";
-            else if (raw.label === "true") sourceHandle = "true";
-            else if (raw.label === "false") sourceHandle = "false";
+            const route = raw.route;
+            if (
+              route === "true" ||
+              route === "false" ||
+              route === "loop" ||
+              route === "done"
+            ) {
+              handle = route;
+            }
           }
 
           const { targetHandle: _th, sourceHandle: _sh, ...restE } = raw;
@@ -371,7 +383,7 @@ function FlowEditor() {
             ...restE,
             type: "customEdge",
             markerEnd: { type: MarkerType.ArrowClosed },
-            ...(sourceHandle !== undefined && { sourceHandle }),
+            ...(handle !== undefined && { sourceHandle: handle }),
           };
         });
         setEdges(updatedEds as any);

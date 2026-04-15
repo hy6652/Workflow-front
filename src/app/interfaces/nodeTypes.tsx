@@ -12,6 +12,7 @@ export const nodeTypes = {
   for: ImageNode,
   autonomous_agent: ImageNode,
   output: ImageNode,
+  data_transform: ImageNode,
 };
 
 export const edgeTypes = {

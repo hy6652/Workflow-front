@@ -1,0 +1,328 @@
+{
+  "id": "fe12bbb9-e36b-4f14-a00a-6d642b2b2f81",
+  "name": "while workflow",
+  "nodes": [
+    {
+      "id": "chat_trigger",
+      "type": "chat",
+      "category": "trigger",
+      "name": "채팅 시작",
+      "position": {
+        "x": 80,
+        "y": 200
+      },
+      "parameters": {},
+      "data": {
+        "label": "챗 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      }
+    },
+    {
+      "id": "azure_search",
+      "type": "azure_search",
+      "category": "action",
+      "name": "Azure 검색",
+      "position": {
+        "x": 280,
+        "y": 200
+      },
+      "parameters": {
+        "top": 3,
+        "queryField": "question"
+      },
+      "data": {
+        "label": "Azure Search",
+        "imageUrl": "nodeImages/document_search.svg"
+      },
+      "measured": {
+        "width": 58,
+        "height": 89
+      },
+      "selected": false
+    },
+    {
+      "id": "check_results",
+      "type": "condition",
+      "category": "control_flow",
+      "name": "검색 결과 존재 여부",
+      "position": {
+        "x": 480,
+        "y": 200
+      },
+      "parameters": {
+        "expression": {
+          "field": "results",
+          "op": "is_empty"
+        },
+        "trueOutput": "true",
+        "falseOutput": "false"
+      },
+      "data": {
+        "label": "if/else",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false
+    },
+    {
+      "id": "no_data_transform",
+      "type": "data_transform",
+      "category": "action",
+      "name": "데이터 없음 설정",
+      "position": {
+        "x": 680,
+        "y": 80
+      },
+      "parameters": {
+        "mappings": [
+          {
+            "op": "set",
+            "value": "데이터 없음",
+            "to": "text"
+          }
+        ]
+      },
+      "data": {
+        "label": "데이터 변환",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      }
+    },
+    {
+      "id": "no_data_output",
+      "type": "output",
+      "category": "action",
+      "name": "데이터 없음 출력",
+      "position": {
+        "x": 880,
+        "y": 80
+      },
+      "parameters": {},
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      }
+    },
+    {
+      "id": "while_loop",
+      "type": "while",
+      "category": "control_flow",
+      "name": "검색 결과 반복",
+      "position": {
+        "x": 680,
+        "y": 320
+      },
+      "parameters": {
+        "maxIterations": 3
+      },
+      "data": {
+        "label": "while문",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false
+    },
+    {
+      "id": "summarize_llm",
+      "type": "llm_call",
+      "category": "agent",
+      "name": "결과 요약",
+      "position": {
+        "x": 850.9708259629963,
+        "y": 376.73884016323444
+      },
+      "parameters": {
+        "systemPrompt": "당신은 검색 결과를 간결하게 요약하는 어시스턴트입니다.",
+        "prompt": "다음 검색 결과 항목을 간결하게 요약하세요:\n\n{{input}}",
+        "outputToken": null
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_1",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 847.9457937569941,
+        "y": 251.40710581441226
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "주어진 여러 요약을 하나로 통합하세요.",
+        "prompt": "각 검색 결과와 그 요약입니다. 하나의 종합 요약으로 합치세요. {{input}}",
+        "outputToken": null
+      }
+    },
+    {
+      "id": "node_2",
+      "type": "output",
+      "category": "action",
+      "position": {
+        "x": 983.3875985492967,
+        "y": 248.25027269404427
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "chat_trigger",
+      "target": "azure_search",
+      "type": "customEdge",
+      "edgeType": "direct",
+      "route": "",
+      "label": "",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "id": "e2",
+      "source": "azure_search",
+      "target": "check_results",
+      "type": "customEdge",
+      "edgeType": "direct",
+      "route": "",
+      "label": "",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "id": "e3",
+      "source": "check_results",
+      "target": "no_data_transform",
+      "type": "customEdge",
+      "edgeType": "conditional",
+      "route": "true",
+      "label": "결과 없음",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "sourceHandle": "true"
+    },
+    {
+      "id": "e4",
+      "source": "no_data_transform",
+      "target": "no_data_output",
+      "type": "customEdge",
+      "edgeType": "direct",
+      "route": "",
+      "label": "",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "id": "e5",
+      "source": "check_results",
+      "target": "while_loop",
+      "type": "customEdge",
+      "edgeType": "conditional",
+      "route": "false",
+      "label": "결과 있음",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "sourceHandle": "false"
+    },
+    {
+      "id": "e6",
+      "source": "while_loop",
+      "target": "summarize_llm",
+      "type": "customEdge",
+      "edgeType": "conditional",
+      "route": "loop",
+      "label": "",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "sourceHandle": "loop"
+    },
+    {
+      "id": "e7",
+      "source": "summarize_llm",
+      "target": "while_loop",
+      "type": "customEdge",
+      "edgeType": "direct",
+      "route": "",
+      "label": "",
+      "markerEnd": {
+        "type": "arrowclosed"
+      }
+    },
+    {
+      "source": "while_loop",
+      "sourceHandle": "done",
+      "target": "node_1",
+      "id": "edge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "conditional",
+      "route": "done"
+    },
+    {
+      "source": "node_1",
+      "target": "node_2",
+      "id": "edge_2",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    }
+  ],
+  "description": "while workflow 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

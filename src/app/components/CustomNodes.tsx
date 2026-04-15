@@ -454,4 +454,14 @@ export const initialNodes = [
       imageUrl: "nodeImages/call_split.svg",
     },
   },
+  {
+    id: "transform",
+    category: "action",
+    type: "data_transform",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "데이터 변환",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
 ];
