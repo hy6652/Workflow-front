@@ -3,6 +3,8 @@
 import { Node, useReactFlow, XYPosition } from "@xyflow/react";
 import { useCallback, useState } from "react";
 import { OnDropAction, useDnD, useDnDPosition } from "../context/DnDContext";
+import reportParameters from "../../../sample/report_parameters.json";
+import { WorkflowOutput } from "../interfaces/workflowOutput";
 
 let nodeCount = 1;
 const getId = () => `node_${nodeCount++}`;
@@ -19,7 +21,7 @@ export interface NodeProps {
   nodes: Node[] | null;
   onBack?: () => void;
   handleCreate: (input: string) => void;
-  onTest?: (input: string) => Promise<string>;
+  onTest?: (input: string) => Promise<WorkflowOutput>;
   showChat?: boolean;
   onToggleChat?: () => void;
 }
@@ -68,12 +70,15 @@ export default function SideBar(props: NodeProps) {
       category: string,
     ): OnDropAction => {
       return ({ position }: { position: XYPosition }) => {
-        const newNode = {
+        const newNode: any = {
           id: getId(),
           type: nodeType,
           category,
           position,
           data: { label: `${label}`, imageUrl },
+          ...(nodeType === "report_template" && {
+            parameters: { sections: reportParameters.sections },
+          }),
         };
         setNodes((nds) => nds.concat(newNode));
         setType(null);

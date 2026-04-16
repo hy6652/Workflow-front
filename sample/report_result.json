@@ -1,0 +1,30 @@
+{
+  "reportTitle": "<회사명>",
+  "reportDate": "<날짜> 기준",
+  "stockHoldings": {
+    "shares": "보유주식수",
+    "acquisitionAmount": "취득금액",
+    "bookValue": "장부가액",
+    "ownershipRatio": "지분율",
+    "acquisitionReason": "취득사유"
+  },
+  "companyOverview": {
+    "founded": "1981.12.10",
+    "ceo": "CEO 이름",
+    "capital": "자본금",
+    "majorShareholders": "주요주주",
+    "mainBusiness": "주요사업",
+    "employees": "종업원 현황",
+    "keyExecutives": "핵심임원"
+  },
+  "financials": {
+    "periods": ["날짜1", "날짜2", "..."],
+    "totalAssets": ["자산총계1", "자산총계2", "..."],
+    "totalLiabilities": "부채총계",
+    "capital": "자본금",
+    "revenue": "매출액",
+    "operatingProfit": "영업이익",
+    "netIncome": "당기순이익"
+  },
+  "businessIssues": [{ "title": "사상 최대 영업이익 달성", "content": "..." }]
+}

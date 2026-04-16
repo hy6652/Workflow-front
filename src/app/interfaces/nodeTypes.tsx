@@ -13,6 +13,7 @@ export const nodeTypes = {
   autonomous_agent: ImageNode,
   output: ImageNode,
   data_transform: ImageNode,
+  report_template: ImageNode,
 };
 
 export const edgeTypes = {

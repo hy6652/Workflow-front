@@ -12,6 +12,7 @@ import {
   OnEdgesChange,
 } from "@xyflow/react";
 import { nodeTypes, edgeTypes } from "../interfaces/nodeTypes";
+import { WorkflowOutput } from "../interfaces/workflowOutput";
 import SideBar from "./Sidebar";
 import NodeConfigPanel from "./NodeConfigPanel";
 import ChatPanel from "./ChatPanel";
@@ -39,7 +40,7 @@ interface WorkflowEditorProps {
   ) => void;
   sideNodes: Node[] | null;
   handleCreate: (input: string) => void;
-  onTest?: (input: string) => Promise<string>;
+  onTest?: (input: string) => Promise<WorkflowOutput>;
 }
 
 export default function WorkflowEditor({

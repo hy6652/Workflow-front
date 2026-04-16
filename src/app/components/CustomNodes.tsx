@@ -464,4 +464,14 @@ export const initialNodes = [
       imageUrl: "nodeImages/call_split.svg",
     },
   },
+  {
+    id: "report_template",
+    category: "action",
+    type: "report_template",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "정형 보고서 생성",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
 ];

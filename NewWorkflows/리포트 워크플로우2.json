@@ -1,0 +1,217 @@
+{
+  "id": "a66c96c3-4d54-4a22-ba1a-9036f1a4bd5d",
+  "name": "리포트 워크플로우2",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "chat",
+      "category": "trigger",
+      "position": {
+        "x": 231.7743461257407,
+        "y": 443.84168926118866
+      },
+      "data": {
+        "label": "챗 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "autonomous_agent",
+      "category": "agent",
+      "position": {
+        "x": 435.72488582615176,
+        "y": 412.20648886817577
+      },
+      "data": {
+        "label": "Autonomous Agent",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 83,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "당신은 DART 공시 데이터 분석 전문가입니다. OpenDART API 도구를 사용하여 기업 개황을 조회하세요. 사용자가 요청한 기업의 기업코드를 찾아 개황 정보를 조회하고, 결과를 한국어로 깔끔하게 정리해주세요.",
+        "outputToken": null,
+        "tools": [
+          {
+            "type": "http_api",
+            "provider": "dart",
+            "endpoint": "company",
+            "name": "dart_company_overview",
+            "description": "기업 개황 조회. JSON으로 corp_code(8자리 기업코드)를 전달하세요. 예: {\\\\\\\"corp_code\\\\\\\":\\\\\\\"00126380\\\\\\\"}",
+            "toolName": "",
+            "serverAlias": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "node_3",
+      "type": "report_template",
+      "category": "action",
+      "position": {
+        "x": 576.2494792091337,
+        "y": 368.70904751228136
+      },
+      "data": {
+        "label": "정형 보고서 생성",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "parameters": {
+        "sections": [
+          {
+            "name": "stockHoldings",
+            "description": "주식 보유 현황. 숫자와 단위는 원문 그대로 유지.",
+            "schema": {
+              "shares": "보유주식수 (예: '14,257,813주')",
+              "acquisitionAmount": "취득금액 (예: '438,221백만원')",
+              "bookValue": "장부가액",
+              "ownershipRatio": "지분율 (예: '5.76%')",
+              "acquisitionReason": "취득사유"
+            }
+          },
+          {
+            "name": "companyOverview",
+            "description": "회사 개요 및 주요 현황",
+            "schema": {
+              "founded": "설립일",
+              "ceo": "대표이사",
+              "capital": "자본금",
+              "majorShareholders": "주요주주",
+              "mainBusiness": "주요사업",
+              "employees": "종업원 현황",
+              "keyExecutives": "핵심임원"
+            }
+          },
+          {
+            "name": "financials",
+            "description": "최근 4개 분기 재무현황. periods 배열(최신순)과 각 항목별 숫자 배열(단위: 백만원, 콤마 없음).",
+            "schema": {
+              "periods": "분기 목록 최신순 배열 (예: [\"2025.06\", \"2025.03\", \"2024.12\", \"2024.09\"])",
+              "totalAssets": "자산총계 숫자 배열 (periods 순서와 일치)",
+              "totalLiabilities": "부채총계 숫자 배열",
+              "capital": "자본금 숫자 배열",
+              "revenue": "매출액 숫자 배열",
+              "operatingProfit": "영업이익 숫자 배열",
+              "netIncome": "당기순이익 숫자 배열"
+            }
+          },
+          {
+            "name": "businessIssues",
+            "description": "사업현황 및 주요이슈. title(제목)과 content(상세 내용)을 가진 객체의 배열로 3~5개 작성."
+          }
+        ]
+      },
+      "measured": {
+        "width": 63,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_4",
+      "type": "output",
+      "category": "action",
+      "position": {
+        "x": 713.6391144706928,
+        "y": 412.57281769820014
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_5",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 336.90011855938315,
+        "y": 343.39817190747874
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "사용자 질문에서 회사 이름을 뽑으세요. 형식은 {\"companyName\":\"\"} 으로 고정합니다.",
+        "prompt": "사용자 질문 : {{input}}",
+        "outputToken": null
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_2",
+      "target": "node_3",
+      "id": "edge_2",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_3",
+      "target": "node_4",
+      "id": "edge_3",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_1",
+      "target": "node_5",
+      "id": "edge_4",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_5",
+      "target": "node_2",
+      "id": "edge_5",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    }
+  ],
+  "description": "리포트 워크플로우2 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

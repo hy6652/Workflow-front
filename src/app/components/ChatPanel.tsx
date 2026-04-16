@@ -1,15 +1,28 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { WorkflowOutput } from "../interfaces/workflowOutput";
 
 interface Message {
   role: "user" | "assistant";
-  text: string;
+  output: WorkflowOutput;
 }
 
 interface Props {
-  onSend: (input: string) => Promise<string>;
+  onSend: (input: string) => Promise<WorkflowOutput>;
   onClose: () => void;
   mode?: "chat" | "manual";
+}
+
+function downloadHtml(html: string, title: string) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${title}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export default function ChatPanel({ onSend, onClose, mode = "chat" }: Props) {
@@ -26,15 +39,15 @@ export default function ChatPanel({ onSend, onClose, mode = "chat" }: Props) {
     if (!input.trim() || loading) return;
     const userMsg = input.trim();
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setMessages((prev) => [...prev, { role: "user", output: { kind: "text", text: userMsg } }]);
     setLoading(true);
     try {
       const response = await onSend(userMsg);
-      setMessages((prev) => [...prev, { role: "assistant", text: response }]);
+      setMessages((prev) => [...prev, { role: "assistant", output: response }]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: "오류가 발생했습니다." },
+        { role: "assistant", output: { kind: "text", text: "오류가 발생했습니다." } },
       ]);
     } finally {
       setLoading(false);
@@ -46,11 +59,11 @@ export default function ChatPanel({ onSend, onClose, mode = "chat" }: Props) {
     setLoading(true);
     try {
       const response = await onSend("");
-      setMessages((prev) => [...prev, { role: "assistant", text: response }]);
+      setMessages((prev) => [...prev, { role: "assistant", output: response }]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: "오류가 발생했습니다." },
+        { role: "assistant", output: { kind: "text", text: "오류가 발생했습니다." } },
       ]);
     } finally {
       setLoading(false);
@@ -165,25 +178,66 @@ export default function ChatPanel({ onSend, onClose, mode = "chat" }: Props) {
             >
               {msg.role === "user" ? "나" : "워크플로우"}
             </span>
-            <div
-              style={{
-                maxWidth: "85%",
-                backgroundColor: msg.role === "user" ? "#2a2a2a" : "#1e1e1e",
-                border: `1px solid ${msg.role === "user" ? "#3a3a3a" : "#2a2a2a"}`,
-                borderRadius:
-                  msg.role === "user"
-                    ? "12px 12px 2px 12px"
-                    : "12px 12px 12px 2px",
-                padding: "9px 12px",
-                fontSize: "12px",
-                color: "#ddd",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                lineHeight: "1.5",
-              }}
-            >
-              {msg.text}
-            </div>
+            {msg.output.kind === "report" ? (
+              <div style={{ maxWidth: "100%", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#aaa",
+                    paddingLeft: "4px",
+                  }}
+                >
+                  보고서: {msg.output.title}
+                </div>
+                <iframe
+                  srcDoc={msg.output.html}
+                  title={msg.output.title}
+                  style={{
+                    width: "320px",
+                    height: "450px",
+                    border: "1px solid #333",
+                    borderRadius: "6px",
+                    background: "#fff",
+                  }}
+                />
+                <button
+                  onClick={() => downloadHtml(msg.output.kind === "report" ? msg.output.html : "", msg.output.kind === "report" ? msg.output.title : "")}
+                  style={{
+                    alignSelf: "flex-start",
+                    backgroundColor: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    color: "#000",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  다운로드
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  maxWidth: "85%",
+                  backgroundColor: msg.role === "user" ? "#2a2a2a" : "#1e1e1e",
+                  border: `1px solid ${msg.role === "user" ? "#3a3a3a" : "#2a2a2a"}`,
+                  borderRadius:
+                    msg.role === "user"
+                      ? "12px 12px 2px 12px"
+                      : "12px 12px 12px 2px",
+                  padding: "9px 12px",
+                  fontSize: "12px",
+                  color: "#ddd",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  lineHeight: "1.5",
+                }}
+              >
+                {msg.output.text}
+              </div>
+            )}
           </div>
         ))}
         {loading && (

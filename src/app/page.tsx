@@ -15,12 +15,14 @@ import "@xyflow/react/dist/style.css";
 
 import { initialNodes } from "./components/CustomNodes";
 import { Workflow } from "./interfaces/workflows";
+import { WorkflowOutput } from "./interfaces/workflowOutput";
 import { DnDProvider } from "./context/DnDContext";
 import {
   createWorkflow,
   runWorkflowJsonAsync,
 } from "@/services/workflowService";
 import type { APIResponse, CreateRequest } from "@/services/workflowService";
+import { buildReportHtml } from "./utils/reportHtml";
 
 import WorkflowHeader from "./components/WorkflowHeader";
 import WorkflowEditor from "./components/WorkflowEditor";
@@ -96,15 +98,34 @@ function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
   });
 }
 
-function extractResultText(result: APIResponse): string {
-  if (!result.success) return result.error ?? "알 수 없는 오류";
-  return (
-    result.outputs?.[0]?.Data?.text ??
-    result.outputs?.[0]?.data?.text ??
+function extractResult(result: APIResponse): WorkflowOutput {
+  if (!result.success) {
+    return { kind: "text", text: result.error ?? "알 수 없는 오류" };
+  }
+  const data = result.outputs?.[0]?.Data ?? result.outputs?.[0]?.data;
+  if (data?.type === "report") {
+    return {
+      kind: "report",
+      html: buildReportHtml(data),
+      title: data.reportTitle ?? "보고서",
+    };
+  }
+  const text =
+    data?.text ??
     (result.outputs?.[0] != null
       ? JSON.stringify(result.outputs[0], null, 2)
-      : "결과 없음")
-  );
+      : "결과 없음");
+  return { kind: "text", text };
+}
+
+async function saveReportFile(html: string, title: string): Promise<void> {
+  const safe = title.replace(/[\\/:*?"<>|]/g, "_");
+  const filename = `${safe}_${new Date().toISOString().slice(0, 10)}.html`;
+  await fetch("/api/save-report", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ html, filename }),
+  }).catch((e) => console.error("보고서 저장 실패:", e));
 }
 
 function FlowEditor() {
@@ -276,8 +297,9 @@ function FlowEditor() {
   };
 
   const handleTestNew = useCallback(
-    async (input: string): Promise<string> => {
-      if (nodes.length === 0) return "워크플로우가 비어 있습니다.";
+    async (input: string): Promise<WorkflowOutput> => {
+      if (nodes.length === 0)
+        return { kind: "text", text: "워크플로우가 비어 있습니다." };
       const workflowData: Workflow = {
         id: crypto.randomUUID(),
         name: title || "test",
@@ -294,19 +316,27 @@ function FlowEditor() {
         definition: workflowData,
         input,
       });
-      return extractResultText(result);
+      const output = extractResult(result);
+      if (output.kind === "report")
+        await saveReportFile(output.html, output.title);
+      return output;
     },
     [nodes, edges, title],
   );
 
+  // 워크플로우 테스트 실행
   const handleTestSaved = useCallback(
-    async (input: string): Promise<string> => {
-      if (!selectedWorkflow) return "워크플로우를 선택해주세요.";
+    async (input: string): Promise<WorkflowOutput> => {
+      if (!selectedWorkflow)
+        return { kind: "text", text: "워크플로우를 선택해주세요." };
       const result = await runWorkflowJsonAsync({
         definition: selectedWorkflow,
         input,
       });
-      return extractResultText(result);
+      const output = extractResult(result);
+      if (output.kind === "report")
+        await saveReportFile(output.html, output.title);
+      return output;
     },
     [selectedWorkflow],
   );

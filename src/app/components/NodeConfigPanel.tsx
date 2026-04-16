@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import reportParameters from "../../../sample/report_parameters.json";
 
 type ToolItem = {
   type: string;
@@ -156,6 +157,8 @@ export default function NodeConfigPanel({
       if (breakCondition.field.trim()) parameters.breakCondition = breakCondition;
     } else if (type === "azure_search") {
       parameters = { top, queryField };
+    } else if (type === "report_template") {
+      parameters = { sections: reportParameters.sections };
     }
     onSave(nodeId, parameters);
   };
@@ -494,6 +497,36 @@ export default function NodeConfigPanel({
             />
           </div>
         </>
+      );
+    }
+
+    if (type === "report_template") {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ fontSize: "11px", color: "#888" }}>
+            고정된 섹션 스키마를 사용합니다. 저장 시 자동으로 적용됩니다.
+          </div>
+          {reportParameters.sections.map((section) => (
+            <div
+              key={section.name}
+              style={{
+                border: "1px solid #333",
+                borderRadius: "6px",
+                padding: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+              }}
+            >
+              <span style={{ fontSize: "11px", color: "#ccc", fontWeight: "bold" }}>
+                {section.name}
+              </span>
+              <span style={{ fontSize: "10px", color: "#666" }}>
+                {section.description}
+              </span>
+            </div>
+          ))}
+        </div>
       );
     }
 
