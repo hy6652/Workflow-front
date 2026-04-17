@@ -14,6 +14,7 @@ export const nodeTypes = {
   output: ImageNode,
   data_transform: ImageNode,
   report_template: ImageNode,
+  schedule: ImageNode,
 };
 
 export const edgeTypes = {

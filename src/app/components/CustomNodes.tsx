@@ -375,6 +375,16 @@ export const initialNodes = [
     },
   },
   {
+    id: "schedule_trigger_node",
+    category: "trigger",
+    type: "schedule",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "스케줄 트리거",
+      imageUrl: "nodeImages/touch_app.svg",
+    },
+  },
+  {
     id: "search_node",
     category: "action",
     type: "azure_search",

@@ -1,0 +1,100 @@
+{
+  "id": "c7f12c3e-81ca-4214-8c59-d7c87d97351f",
+  "name": "스케줄 워크플로우",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "schedule",
+      "category": "trigger",
+      "position": {
+        "x": 274.3999938964844,
+        "y": 325.3999938964844
+      },
+      "data": {
+        "label": "스케줄 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 52,
+        "height": 89
+      },
+      "selected": true,
+      "parameters": {
+        "cronExpression": "* * * * *",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "id": "node_2",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 422.3466197888656,
+        "y": 318.6758123599471
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "사용자가 준 숫자를 다 더한 값을 보여주세요",
+        "prompt": "숫자 : 1,2,3,4,5,6,7,8,9,10",
+        "outputToken": null
+      }
+    },
+    {
+      "id": "node_3",
+      "type": "output",
+      "category": "action",
+      "position": {
+        "x": 557.246628944139,
+        "y": 324.7758184634627
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1",
+      "target": "node_2",
+      "id": "edge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_2",
+      "target": "node_3",
+      "id": "edge_3",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    }
+  ],
+  "description": "스케줄 워크플로우 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

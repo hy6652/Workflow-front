@@ -79,12 +79,14 @@ function FlowEditor() {
   }, [activeTab]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(makeArrowEdge(params), eds)),
+    (params: Connection) =>
+      setEdges((eds) => addEdge(makeArrowEdge(params), eds)),
     [setEdges],
   );
 
   const onSavedConnect = useCallback(
-    (params: Connection) => setSavedEdges((eds) => addEdge(makeArrowEdge(params), eds)),
+    (params: Connection) =>
+      setSavedEdges((eds) => addEdge(makeArrowEdge(params), eds)),
     [setSavedEdges],
   );
 

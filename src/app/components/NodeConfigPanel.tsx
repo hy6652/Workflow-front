@@ -169,9 +169,22 @@ export default function NodeConfigPanel({
     initialParameters?.queryField ?? "question",
   );
 
+  // schedule
+  const [cronExpression, setCronExpression] = useState<string>(
+    initialParameters?.cronExpression ?? "",
+  );
+  const [timezone, setTimezone] = useState<string>(
+    initialParameters?.timezone ?? "UTC",
+  );
+
   const handleSave = () => {
     let parameters: Record<string, any> = {};
-    if (type === "autonomous_agent") {
+    if (type === "schedule") {
+      parameters = {
+        cronExpression: cronExpression,
+        timezone: timezone,
+      };
+    } else if (type === "autonomous_agent") {
       parameters = {
         systemPrompt: agentSystemPrompt,
         outputToken: agentOutputToken,
@@ -189,7 +202,8 @@ export default function NodeConfigPanel({
       parameters = { maxIterations };
       if (iterateOver.trim()) parameters.iterateOver = iterateOver.trim();
       if (doneCondition.field.trim()) parameters.doneCondition = doneCondition;
-      if (breakCondition.field.trim()) parameters.breakCondition = breakCondition;
+      if (breakCondition.field.trim())
+        parameters.breakCondition = breakCondition;
     } else if (type === "azure_search") {
       parameters = { top, queryField };
     } else if (type === "report_template") {
@@ -238,6 +252,29 @@ export default function NodeConfigPanel({
           <br />
           테스트 패널의 채팅 입력이 이 트리거로 전달됩니다.
         </div>
+      );
+    }
+
+    if (type === "schedule") {
+      return (
+        <>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Cron Expression</span>
+            <input
+              value={cronExpression}
+              onChange={(e) => setCronExpression(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Time Zone</span>
+            <input
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+        </>
       );
     }
 
@@ -498,7 +535,9 @@ export default function NodeConfigPanel({
                 gap: "2px",
               }}
             >
-              <span style={{ fontSize: "11px", color: "#ccc", fontWeight: "bold" }}>
+              <span
+                style={{ fontSize: "11px", color: "#ccc", fontWeight: "bold" }}
+              >
                 {section.name}
               </span>
               <span style={{ fontSize: "10px", color: "#666" }}>
