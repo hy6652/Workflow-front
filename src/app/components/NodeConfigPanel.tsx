@@ -69,6 +69,46 @@ const EMPTY_TOOL: ToolItem = {
   serverAlias: "",
 };
 
+interface ExpressionBlockProps {
+  label: string;
+  value: Expression;
+  onChange: React.Dispatch<React.SetStateAction<Expression>>;
+}
+
+function ExpressionBlock({ label, value, onChange }: ExpressionBlockProps) {
+  return (
+    <div style={fieldStyle}>
+      <span style={labelStyle}>{label}</span>
+      <div
+        style={{
+          border: "1px solid #333",
+          borderRadius: "6px",
+          padding: "8px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+        }}
+      >
+        {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
+          <div key={k} style={fieldStyle}>
+            <span style={{ ...labelStyle, fontSize: "10px" }}>
+              {k === "op" ? "op  (gt, le, equals …)" : k}
+            </span>
+            <input
+              type="text"
+              value={value[k]}
+              onChange={(e) =>
+                onChange((prev) => ({ ...prev, [k]: e.target.value }))
+              }
+              style={inputStyle}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function NodeConfigPanel({
   nodeId,
   type,
@@ -76,17 +116,15 @@ export default function NodeConfigPanel({
   onSave,
   onClose,
 }: Props) {
-  // manual (trigger)
-  const [inputJson, setInputJson] = useState<string>(
-    initialParameters?.input ?? "",
-  );
-
   // autonomous_agent
   const [agentSystemPrompt, setAgentSystemPrompt] = useState<string>(
     initialParameters?.systemPrompt ?? "",
   );
   const [tools, setTools] = useState<ToolItem[]>(
     initialParameters?.tools ?? [],
+  );
+  const [agentOutputToken, setAgentOutputToken] = useState<number | null>(
+    initialParameters?.outputToken ?? null,
   );
 
   // llm_call
@@ -96,10 +134,7 @@ export default function NodeConfigPanel({
   const [llmPrompt, setLlmPrompt] = useState<string>(
     initialParameters?.prompt ?? "",
   );
-  const [outputToken, setOutputToken] = useState<number | null>(
-    initialParameters?.outputToken ?? null,
-  );
-  const [llmOutputToken, setLLMOutputToken] = useState<number | null>(
+  const [llmOutputToken, setLlmOutputToken] = useState<number | null>(
     initialParameters?.outputToken ?? null,
   );
 
@@ -139,7 +174,7 @@ export default function NodeConfigPanel({
     if (type === "autonomous_agent") {
       parameters = {
         systemPrompt: agentSystemPrompt,
-        outputToken: outputToken,
+        outputToken: agentOutputToken,
         tools,
       };
     } else if (type === "llm_call") {
@@ -222,8 +257,12 @@ export default function NodeConfigPanel({
             <span style={labelStyle}>Output Token</span>
             <input
               type="number"
-              value={outputToken ?? ""}
-              onChange={(e) => setOutputToken(e.target.value === "" ? null : Number(e.target.value))}
+              value={agentOutputToken ?? ""}
+              onChange={(e) =>
+                setAgentOutputToken(
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
               style={inputStyle}
             />
           </div>
@@ -335,7 +374,11 @@ export default function NodeConfigPanel({
             <input
               type="number"
               value={llmOutputToken ?? ""}
-              onChange={(e) => setLLMOutputToken(e.target.value === "" ? null : Number(e.target.value))}
+              onChange={(e) =>
+                setLlmOutputToken(
+                  e.target.value === "" ? null : Number(e.target.value),
+                )
+              }
               style={inputStyle}
             />
           </div>
@@ -364,79 +407,16 @@ export default function NodeConfigPanel({
               style={inputStyle}
             />
           </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Expression</span>
-            <div
-              style={{
-                border: "1px solid #333",
-                borderRadius: "6px",
-                padding: "8px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-              }}
-            >
-              {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
-                <div key={k} style={fieldStyle}>
-                  <span style={{ ...labelStyle, fontSize: "10px" }}>
-                    {k === "op" ? "op  (gt, le, equals …)" : k}
-                  </span>
-                  <input
-                    type="text"
-                    value={expression[k]}
-                    onChange={(e) =>
-                      setExpression((prev) => ({
-                        ...prev,
-                        [k]: e.target.value,
-                      }))
-                    }
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <ExpressionBlock
+            label="Expression"
+            value={expression}
+            onChange={setExpression}
+          />
         </>
       );
     }
 
     if (type === "while") {
-      const expressionBlock = (
-        label: string,
-        expr: Expression,
-        setExpr: React.Dispatch<React.SetStateAction<Expression>>,
-      ) => (
-        <div style={fieldStyle}>
-          <span style={labelStyle}>{label}</span>
-          <div
-            style={{
-              border: "1px solid #333",
-              borderRadius: "6px",
-              padding: "8px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
-            }}
-          >
-            {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
-              <div key={k} style={fieldStyle}>
-                <span style={{ ...labelStyle, fontSize: "10px" }}>
-                  {k === "op" ? "op  (gt, le, equals …)" : k}
-                </span>
-                <input
-                  type="text"
-                  value={expr[k]}
-                  onChange={(e) =>
-                    setExpr((prev) => ({ ...prev, [k]: e.target.value }))
-                  }
-                  style={inputStyle}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-
       return (
         <>
           <div style={fieldStyle}>
@@ -461,16 +441,16 @@ export default function NodeConfigPanel({
               style={{ ...inputStyle, color: iterateOver ? "#fff" : "#555" }}
             />
           </div>
-          {expressionBlock(
-            "doneCondition (선택 · done 엣지)",
-            doneCondition,
-            setDoneCondition,
-          )}
-          {expressionBlock(
-            "breakCondition (선택 · break 엣지)",
-            breakCondition,
-            setBreakCondition,
-          )}
+          <ExpressionBlock
+            label="doneCondition (선택 · done 엣지)"
+            value={doneCondition}
+            onChange={setDoneCondition}
+          />
+          <ExpressionBlock
+            label="breakCondition (선택 · break 엣지)"
+            value={breakCondition}
+            onChange={setBreakCondition}
+          />
         </>
       );
     }

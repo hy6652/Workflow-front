@@ -15,14 +15,19 @@ import "@xyflow/react/dist/style.css";
 
 import { initialNodes } from "./components/CustomNodes";
 import { Workflow } from "./interfaces/workflows";
-import { WorkflowOutput } from "./interfaces/workflowOutput";
 import { DnDProvider } from "./context/DnDContext";
 import {
   createWorkflow,
   runWorkflowJsonAsync,
 } from "@/services/workflowService";
-import type { APIResponse, CreateRequest } from "@/services/workflowService";
-import { buildReportHtml } from "./utils/reportHtml";
+import type { CreateRequest } from "@/services/workflowService";
+import {
+  resolveNodeType,
+  buildTransformedEdges,
+  extractResult,
+  saveReportFile,
+  makeArrowEdge,
+} from "./utils/workflowUtils";
 
 import WorkflowHeader from "./components/WorkflowHeader";
 import WorkflowEditor from "./components/WorkflowEditor";
@@ -33,100 +38,6 @@ import NodeConfigPanel from "./components/NodeConfigPanel";
 import ChatPanel from "./components/ChatPanel";
 
 type Tab = "new" | "saved";
-
-let edgeCount = 1;
-const getEdgeId = () => `edge_${edgeCount++}`;
-
-function resolveNodeType(node: any): string {
-  if (!node) return "";
-  return node.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
-}
-
-function resolveType(node: any): string {
-  return node?.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
-}
-
-function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
-  const isConditionalHandle = (handle: string | null | undefined) =>
-    handle === "true" ||
-    handle === "false" ||
-    handle === "done" ||
-    handle === "loop";
-
-  // while 노드는 초기 입력 + loop 귀환으로 항상 두 개의 incoming edge가 생기므로
-  // fan_in 카운트에서 제외하고 항상 direct로 처리
-  const whileNodeIds = new Set(
-    nodes.filter((n) => resolveType(n) === "while").map((n) => n.id),
-  );
-
-  const sourceEdgeCount: Record<string, number> = {};
-  const targetEdgeCount: Record<string, number> = {};
-  edges.forEach((edge) => {
-    if (
-      !isConditionalHandle(edge.sourceHandle) &&
-      !whileNodeIds.has(edge.target)
-    ) {
-      sourceEdgeCount[edge.source] = (sourceEdgeCount[edge.source] ?? 0) + 1;
-      targetEdgeCount[edge.target] = (targetEdgeCount[edge.target] ?? 0) + 1;
-    }
-  });
-
-  return edges.map((edge) => {
-    let edgeType: "conditional" | "direct" | "fan_out" | "fan_in";
-    let route = "";
-    if (isConditionalHandle(edge.sourceHandle)) {
-      edgeType = "conditional";
-      if (edge.sourceHandle === "true" || edge.sourceHandle === "false") {
-        const eNode: any = nodes.find((x) => x.id === edge.source);
-        route =
-          edge.sourceHandle === "true"
-            ? (eNode?.parameters?.trueOutput ?? "")
-            : (eNode?.parameters?.falseOutput ?? "");
-      } else {
-        route = edge.sourceHandle!;
-      }
-    } else if (whileNodeIds.has(edge.target)) {
-      edgeType = "direct";
-    } else {
-      const outCount = sourceEdgeCount[edge.source] ?? 0;
-      const inCount = targetEdgeCount[edge.target] ?? 0;
-      if (outCount > 1) edgeType = "fan_out";
-      else if (inCount > 1) edgeType = "fan_in";
-      else edgeType = "direct";
-    }
-    return { ...edge, edgeType, route };
-  });
-}
-
-function extractResult(result: APIResponse): WorkflowOutput {
-  if (!result.success) {
-    return { kind: "text", text: result.error ?? "알 수 없는 오류" };
-  }
-  const data = result.outputs?.[0]?.Data ?? result.outputs?.[0]?.data;
-  if (data?.type === "report") {
-    return {
-      kind: "report",
-      html: buildReportHtml(data),
-      title: data.reportTitle ?? "보고서",
-    };
-  }
-  const text =
-    data?.text ??
-    (result.outputs?.[0] != null
-      ? JSON.stringify(result.outputs[0], null, 2)
-      : "결과 없음");
-  return { kind: "text", text };
-}
-
-async function saveReportFile(html: string, title: string): Promise<void> {
-  const safe = title.replace(/[\\/:*?"<>|]/g, "_");
-  const filename = `${safe}_${new Date().toISOString().slice(0, 10)}.html`;
-  await fetch("/api/save-report", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ html, filename }),
-  }).catch((e) => console.error("보고서 저장 실패:", e));
-}
 
 function FlowEditor() {
   const [activeTab, setActiveTab] = useState<Tab>("new");
@@ -168,22 +79,22 @@ function FlowEditor() {
   }, [activeTab]);
 
   const onConnect = useCallback(
-    (params: Connection) => {
-      const arrowEdge: Edge = {
-        ...params,
-        id: getEdgeId(),
-        type: "customEdge",
-        markerEnd: { type: MarkerType.ArrowClosed },
-      };
-      setEdges((eds) => addEdge(arrowEdge, eds));
-    },
+    (params: Connection) => setEdges((eds) => addEdge(makeArrowEdge(params), eds)),
     [setEdges],
   );
 
+  const onSavedConnect = useCallback(
+    (params: Connection) => setSavedEdges((eds) => addEdge(makeArrowEdge(params), eds)),
+    [setSavedEdges],
+  );
+
   const onNodeDoubleClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
-      setConfigNodeId(node.id);
-    },
+    (_: React.MouseEvent, node: Node) => setConfigNodeId(node.id),
+    [],
+  );
+
+  const onSavedNodeDoubleClick = useCallback(
+    (_: React.MouseEvent, node: Node) => setSavedConfigNodeId(node.id),
     [],
   );
 
@@ -197,13 +108,6 @@ function FlowEditor() {
     [setNodes],
   );
 
-  const onSavedNodeDoubleClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
-      setSavedConfigNodeId(node.id);
-    },
-    [],
-  );
-
   const handleSaveSavedNodeConfig = useCallback(
     (nodeId: string, parameters: Record<string, any>) => {
       setSavedNodes((nds) =>
@@ -212,19 +116,6 @@ function FlowEditor() {
       setSavedConfigNodeId(null);
     },
     [setSavedNodes],
-  );
-
-  const onSavedConnect = useCallback(
-    (params: Connection) => {
-      const arrowEdge: Edge = {
-        ...params,
-        id: getEdgeId(),
-        type: "customEdge",
-        markerEnd: { type: MarkerType.ArrowClosed },
-      };
-      setSavedEdges((eds) => addEdge(arrowEdge, eds));
-    },
-    [setSavedEdges],
   );
 
   const handleTabChange = (tab: Tab) => {
@@ -297,9 +188,9 @@ function FlowEditor() {
   };
 
   const handleTestNew = useCallback(
-    async (input: string): Promise<WorkflowOutput> => {
+    async (input: string) => {
       if (nodes.length === 0)
-        return { kind: "text", text: "워크플로우가 비어 있습니다." };
+        return { kind: "text" as const, text: "워크플로우가 비어 있습니다." };
       const workflowData: Workflow = {
         id: crypto.randomUUID(),
         name: title || "test",
@@ -311,7 +202,6 @@ function FlowEditor() {
         isDeleted: false,
         version: "1.0.0",
       };
-      console.log(`workflow : ${JSON.stringify(workflowData)}`);
       const result = await runWorkflowJsonAsync({
         definition: workflowData,
         input,
@@ -324,11 +214,10 @@ function FlowEditor() {
     [nodes, edges, title],
   );
 
-  // 워크플로우 테스트 실행
   const handleTestSaved = useCallback(
-    async (input: string): Promise<WorkflowOutput> => {
+    async (input: string) => {
       if (!selectedWorkflow)
-        return { kind: "text", text: "워크플로우를 선택해주세요." };
+        return { kind: "text" as const, text: "워크플로우를 선택해주세요." };
       const result = await runWorkflowJsonAsync({
         definition: selectedWorkflow,
         input,
@@ -350,8 +239,7 @@ function FlowEditor() {
       const response = await fetch(`/api/workflows?fileName=${wf.fileName}`);
       if (!response.ok) throw new Error("파일 읽기 실패");
 
-      const workflowJson = await response.json();
-      const workflowData: Workflow = workflowJson;
+      const workflowData: Workflow = await response.json();
 
       setSelectedWorkflow(workflowData);
       setSavedNodes((workflowData.nodes as any) ?? []);

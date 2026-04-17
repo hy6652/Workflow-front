@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -13,17 +13,10 @@ import {
 } from "@xyflow/react";
 import { nodeTypes, edgeTypes } from "../interfaces/nodeTypes";
 import { WorkflowOutput } from "../interfaces/workflowOutput";
+import { resolveNodeType } from "../utils/workflowUtils";
 import SideBar from "./Sidebar";
 import NodeConfigPanel from "./NodeConfigPanel";
 import ChatPanel from "./ChatPanel";
-
-/** 노드의 비즈니스 타입을 반환합니다.
- * 새 노드: type = "manual" 등 (비즈니스 타입)
- * 구 JSON 노드: type = "imageNode", category에 비즈니스 타입 존재 */
-function resolveNodeType(node: any): string {
-  if (!node) return "";
-  return node.type === "imageNode" ? (node.category ?? "") : (node.type ?? "");
-}
 
 interface WorkflowEditorProps {
   nodes: Node[];
@@ -57,7 +50,6 @@ export default function WorkflowEditor({
   handleCreate,
   onTest,
 }: WorkflowEditorProps) {
-  const reactFlowWrapper = useRef(null);
   const [showChat, setShowChat] = useState(false);
 
   const panelMode = (nodes as any[]).some(
@@ -67,11 +59,7 @@ export default function WorkflowEditor({
     : "manual";
 
   return (
-    <div
-      style={{ display: "flex", flex: 1, overflow: "hidden" }}
-      className="reactflow-wrapper"
-      ref={reactFlowWrapper}
-    >
+    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ flex: 1 }}>
           <ReactFlow

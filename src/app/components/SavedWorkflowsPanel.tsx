@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Workflow } from "../interfaces/workflows";
 
 interface SavedWorkflow {
@@ -17,17 +17,8 @@ interface SavedWorkflowsPanelProps {
 
 export default function SavedWorkflowsPanel({
   workflows,
-  selectedWorkflow,
   onSelect,
 }: SavedWorkflowsPanelProps) {
-  // const [selectedWorkflow, setSelectedWorkflow] =
-  //   useState<SavedWorkflow | null>(null);
-
-  // const handleClick = (wf: SavedWorkflow) => {
-  //   console.log(`click!! : ${wf.fileName}`);
-  //   setSelectedWorkflow(wf);
-  // };
-
   return (
     <div
       style={{
@@ -78,7 +69,6 @@ export default function SavedWorkflowsPanel({
               cursor: "pointer",
               transition: "all 0.2s ease",
             }}
-            onMouseDown={(e) => {}}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = "#555";
               e.currentTarget.style.backgroundColor = "#2a2a2a";

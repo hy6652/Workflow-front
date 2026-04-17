@@ -11,31 +11,6 @@ import {
   useState,
 } from "react";
 
-// interface DnDNodeData {
-//   type: string;
-//   data: { label: string; imageUrl: string; category?: string };
-// }
-
-// type DnDContextType = [DnDNodeData | null, (value: DnDNodeData | null) => void];
-
-// const DnDContext = createContext<DnDContextType>([null, () => {}]);
-
-// export const DnDProvider = ({ children }: { children: React.ReactNode }) => {
-//   const [nodeData, setNodeData] = useState<DnDNodeData | null>(null);
-
-//   return (
-//     <DnDContext.Provider value={[nodeData, setNodeData]}>
-//       {children}
-//     </DnDContext.Provider>
-//   );
-// };
-
-// export default DnDContext;
-
-// export const useDnD = () => {
-//   return useContext(DnDContext);
-// };
-
 export type OnDropAction = ({ position }: { position: XYPosition }) => void;
 
 interface DnDContextType {

@@ -30,7 +30,6 @@ export default function SideBar(props: NodeProps) {
   const { onDragStart, isDragging } = useDnD();
   const [showNLInput, setShowNLInput] = useState(false);
   const [nlText, setNlText] = useState("");
-  const [type, setType] = useState<string | null>(null);
   const [dragNode, setDragNode] = useState<{
     label: string;
     imageUrl: string;
@@ -81,10 +80,9 @@ export default function SideBar(props: NodeProps) {
           }),
         };
         setNodes((nds) => nds.concat(newNode));
-        setType(null);
       };
     },
-    [setNodes, setType],
+    [setNodes],
   );
 
   return (
@@ -226,7 +224,6 @@ export default function SideBar(props: NodeProps) {
 
           {isDragging && (
             <DragGhost
-              type={type}
               label={dragNode?.label}
               imageUrl={dragNode?.imageUrl}
             />
@@ -308,7 +305,6 @@ export default function SideBar(props: NodeProps) {
                             backgroundColor: "#1e1e1e",
                           }}
                           onPointerDown={(event) => {
-                            setType(node.type);
                             setDragNode({
                               label: node.data.label,
                               imageUrl: node.data.imageUrl,
@@ -382,7 +378,6 @@ export default function SideBar(props: NodeProps) {
 }
 
 interface DragGhostProps {
-  type: string | null;
   label?: string;
   imageUrl?: string;
 }
