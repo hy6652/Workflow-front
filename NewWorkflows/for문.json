@@ -1,0 +1,175 @@
+{
+  "id": "a399689f-9a41-4894-baca-e7b86f5a8177",
+  "name": "for문",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "chat",
+      "category": "trigger",
+      "position": {
+        "x": 314.7487044585127,
+        "y": 304.04647714254895
+      },
+      "data": {
+        "label": "챗 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_2",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 442.005447867205,
+        "y": 308.6356544140468
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "사용자가 전달한 숫자를 배열로 만들어서 리턴하세요. 리턴은 아래의 예시를 따르세요.\n예시 : {\"Item\": [...]}",
+        "prompt": "숫자 : {{input}}",
+        "outputToken": null
+      }
+    },
+    {
+      "id": "node_3",
+      "type": "foreach",
+      "category": "control_flow",
+      "position": {
+        "x": 580.553778498359,
+        "y": 318.92782014489404
+      },
+      "data": {
+        "label": "for문",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "parameters": {}
+    },
+    {
+      "id": "node_4",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 701.5526700235075,
+        "y": 415.1199589206937
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "주어진 숫자에 *3을 한 결과를 반환하세요.",
+        "prompt": "데이터 : {{input}}",
+        "outputToken": null
+      }
+    },
+    {
+      "id": "node_5",
+      "type": "output",
+      "category": "action",
+      "position": {
+        "x": 717.1228472633535,
+        "y": 239.09759154313383
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1",
+      "target": "node_2",
+      "id": "edge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_2",
+      "target": "node_3",
+      "id": "edge_3",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_3",
+      "sourceHandle": "loop",
+      "target": "node_4",
+      "id": "edge_5",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "conditional",
+      "route": "loop"
+    },
+    {
+      "source": "node_3",
+      "sourceHandle": "done",
+      "target": "node_5",
+      "id": "edge_9",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "conditional",
+      "route": "done"
+    },
+    {
+      "source": "node_4",
+      "target": "node_3",
+      "id": "edge_15",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    }
+  ],
+  "description": "for문 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

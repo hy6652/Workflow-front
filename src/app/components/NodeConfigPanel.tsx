@@ -153,14 +153,16 @@ export default function NodeConfigPanel({
   const [maxIterations, setMaxIterations] = useState<number>(
     initialParameters?.maxIterations ?? 10,
   );
-  const [iterateOver, setIterateOver] = useState<string>(
-    initialParameters?.iterateOver ?? "",
-  );
   const [doneCondition, setDoneCondition] = useState<Expression>(
     initialParameters?.doneCondition ?? { field: "", op: "", value: "" },
   );
   const [breakCondition, setBreakCondition] = useState<Expression>(
     initialParameters?.breakCondition ?? { field: "", op: "", value: "" },
+  );
+
+  // for
+  const [iterateOver, setIterateOver] = useState<string>(
+    initialParameters?.iterateOver ?? "",
   );
 
   // azure_search
@@ -200,10 +202,11 @@ export default function NodeConfigPanel({
       parameters = { trueOutput, falseOutput, expression };
     } else if (type === "while") {
       parameters = { maxIterations };
-      if (iterateOver.trim()) parameters.iterateOver = iterateOver.trim();
       if (doneCondition.field.trim()) parameters.doneCondition = doneCondition;
       if (breakCondition.field.trim())
         parameters.breakCondition = breakCondition;
+    } else if (type === "foreach") {
+      if (iterateOver.trim()) parameters.iterateOver = iterateOver.trim();
     } else if (type === "azure_search") {
       parameters = { top, queryField };
     } else if (type === "report_template") {
@@ -465,6 +468,33 @@ export default function NodeConfigPanel({
               style={inputStyle}
             />
           </div>
+          <ExpressionBlock
+            label="doneCondition (선택 · done 엣지)"
+            value={doneCondition}
+            onChange={setDoneCondition}
+          />
+          <ExpressionBlock
+            label="breakCondition (선택 · break 엣지)"
+            value={breakCondition}
+            onChange={setBreakCondition}
+          />
+        </>
+      );
+    }
+
+    if (type === "foreach") {
+      return (
+        <>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#666",
+              lineHeight: "1.6",
+              padding: "8px 0",
+            }}
+          >
+            iterateOver를 지정하지 않으면 이전 노드의 배열을 전달합니다.
+          </div>
           <div style={fieldStyle}>
             <span style={labelStyle}>
               iterateOver
@@ -478,16 +508,6 @@ export default function NodeConfigPanel({
               style={{ ...inputStyle, color: iterateOver ? "#fff" : "#555" }}
             />
           </div>
-          <ExpressionBlock
-            label="doneCondition (선택 · done 엣지)"
-            value={doneCondition}
-            onChange={setDoneCondition}
-          />
-          <ExpressionBlock
-            label="breakCondition (선택 · break 엣지)"
-            value={breakCondition}
-            onChange={setBreakCondition}
-          />
         </>
       );
     }

@@ -9,7 +9,7 @@ export const nodeTypes = {
   aggregator: ImageNode,
   condition: ImageNode,
   while: ImageNode,
-  for: ImageNode,
+  foreach: ImageNode,
   autonomous_agent: ImageNode,
   output: ImageNode,
   data_transform: ImageNode,

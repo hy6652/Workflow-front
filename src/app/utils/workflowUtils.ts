@@ -27,10 +27,12 @@ export function buildTransformedEdges(edges: Edge[], nodes: Node[]) {
     handle === "done" ||
     handle === "loop";
 
-  // while 노드는 초기 입력 + loop 귀환으로 항상 두 개의 incoming edge가 생기므로
+  // while/foreach 노드는 초기 입력 + loop 귀환으로 항상 두 개의 incoming edge가 생기므로
   // fan_in 카운트에서 제외하고 항상 direct로 처리
   const whileNodeIds = new Set(
-    nodes.filter((n) => resolveNodeType(n) === "while").map((n) => n.id),
+    nodes
+      .filter((n) => resolveNodeType(n) === "while" || resolveNodeType(n) === "foreach")
+      .map((n) => n.id),
   );
 
   const sourceEdgeCount: Record<string, number> = {};

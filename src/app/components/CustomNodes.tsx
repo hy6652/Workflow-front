@@ -163,7 +163,7 @@ export const ImageNode = (props: any) => {
               false
             </span>
           </>
-        ) : type === "while" ? (
+        ) : type === "while" || type === "foreach" ? (
           <>
             <Handle
               type="source"
@@ -437,7 +437,7 @@ export const initialNodes = [
   {
     id: "for_loop",
     category: "control_flow",
-    type: "for",
+    type: "foreach",
     position: { x: 0, y: 0 },
     data: {
       label: "for문",
