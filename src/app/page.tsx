@@ -384,7 +384,7 @@ function FlowEditor() {
                   (savedNodes.find((n) => n.id === savedConfigNodeId) as any)
                     ?.parameters
                 }
-                onSave={handleSaveSavedNodeConfig}
+onSave={handleSaveSavedNodeConfig}
                 onClose={() => setSavedConfigNodeId(null)}
               />
             ) : (

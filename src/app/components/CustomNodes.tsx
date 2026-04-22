@@ -484,4 +484,14 @@ export const initialNodes = [
       imageUrl: "nodeImages/call_split.svg",
     },
   },
+  {
+    id: "chart",
+    category: "action",
+    type: "chart",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "차트 생성",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
 ];

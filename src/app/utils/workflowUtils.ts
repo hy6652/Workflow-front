@@ -86,6 +86,9 @@ export function extractResult(result: APIResponse): WorkflowOutput {
       title: data.reportTitle ?? "보고서",
     };
   }
+  if (data?.chartConfig) {
+    return { kind: "chart", chartConfig: data.chartConfig };
+  }
   const text =
     data?.text ??
     (result.outputs?.[0] != null

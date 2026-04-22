@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { WorkflowOutput } from "../interfaces/workflowOutput";
+import ChartRenderer from "./ChartRenderer";
 
 interface Message {
   role: "user" | "assistant";
@@ -178,7 +179,9 @@ export default function ChatPanel({ onSend, onClose, mode = "chat" }: Props) {
             >
               {msg.role === "user" ? "나" : "워크플로우"}
             </span>
-            {msg.output.kind === "report" ? (
+            {msg.output.kind === "chart" ? (
+              <ChartRenderer chartConfig={msg.output.chartConfig} />
+            ) : msg.output.kind === "report" ? (
               <div style={{ maxWidth: "100%", display: "flex", flexDirection: "column", gap: "6px" }}>
                 <div
                   style={{

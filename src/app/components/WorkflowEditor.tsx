@@ -94,7 +94,7 @@ export default function WorkflowEditor({
           initialParameters={
             (nodes.find((n) => n.id === configNodeId) as any)?.parameters
           }
-          onSave={handleSaveNodeConfig}
+onSave={handleSaveNodeConfig}
           onClose={() => setConfigNodeId(null)}
         />
       ) : (

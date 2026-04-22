@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Workflow Front
 
-## Getting Started
+AI 워크플로우를 시각적으로 설계하고 실행하는 웹 에디터입니다.
 
-First, run the development server:
+## 개요
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+노드 기반의 드래그앤드롭 인터페이스로 워크플로우를 구성하고, 백엔드 API로 실행 결과를 바로 확인할 수 있습니다.
+자연어 입력으로 워크플로우를 자동 생성하는 기능도 포함되어 있습니다.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 노드 종류
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| 분류      | 타입               | 설명                                       |
+| --------- | ------------------ | ------------------------------------------ |
+| 트리거    | `manual`           | 버튼 클릭으로 실행                         |
+| 트리거    | `chat`             | 채팅 입력으로 실행                         |
+| 트리거    | `schedule`         | Cron 표현식 기반 스케줄 실행               |
+| 에이전트  | `llm_call`         | LLM 호출 (시스템 프롬프트 / 유저 프롬프트) |
+| 에이전트  | `autonomous_agent` | 툴을 장착한 자율 에이전트                  |
+| 액션      | `azure_search`     | Azure Cognitive Search 쿼리                |
+| 액션      | `data_transform`   | 데이터 변환                                |
+| 액션      | `output`           | 최종 출력                                  |
+| 액션      | `report_template`  | 정형 보고서 생성                           |
+| 유틸리티  | `aggregator`       | 여러 노드 결과 취합                        |
+| 제어 흐름 | `condition`        | if/else 분기 (`true` / `false` 엣지)       |
+| 제어 흐름 | `while`            | 조건 기반 반복 (`loop` / `done` 엣지)      |
+| 제어 흐름 | `foreach`          | 배열 순회 반복 (`loop` / `done` 엣지)      |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 엣지 타입
 
-## Learn More
+워크플로우 저장·실행 시 각 엣지는 아래 타입으로 직렬화됩니다.
 
-To learn more about Next.js, take a look at the following resources:
+- `direct` — 1:1 연결
+- `conditional` — 분기 핸들(`true` / `false` / `done` / `loop`)에서 출발하는 엣지
+- `fan_out` — 한 노드에서 여러 노드로 분기
+- `fan_in` — 여러 노드에서 한 노드로 합류
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 주요 기능
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **워크플로우 에디터** — 노드 드래그앤드롭, 엣지 연결, 노드별 파라미터 설정
+- **자동 생성** — 자연어 설명을 입력하면 백엔드 API가 워크플로우 JSON을 생성하고 에디터에 로드
+- **저장 / 불러오기** — 워크플로우를 JSON 파일로 로컬 저장 후 재편집 가능
+- **테스트 실행** — 에디터 내 채팅 패널 또는 매뉴얼 패널에서 바로 워크플로우 실행 및 결과 확인
+- **보고서 출력** — `report_template` 노드 포함 워크플로우 실행 시 HTML 보고서 자동 저장

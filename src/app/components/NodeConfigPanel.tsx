@@ -69,6 +69,7 @@ const EMPTY_TOOL: ToolItem = {
   serverAlias: "",
 };
 
+
 interface ExpressionBlockProps {
   label: string;
   value: Expression;
@@ -131,9 +132,6 @@ export default function NodeConfigPanel({
   const [llmSystemPrompt, setLlmSystemPrompt] = useState<string>(
     initialParameters?.systemPrompt ?? "",
   );
-  const [llmPrompt, setLlmPrompt] = useState<string>(
-    initialParameters?.prompt ?? "",
-  );
   const [llmOutputToken, setLlmOutputToken] = useState<number | null>(
     initialParameters?.outputToken ?? null,
   );
@@ -160,7 +158,7 @@ export default function NodeConfigPanel({
     initialParameters?.breakCondition ?? { field: "", op: "", value: "" },
   );
 
-  // for
+  // foreach
   const [iterateOver, setIterateOver] = useState<string>(
     initialParameters?.iterateOver ?? "",
   );
@@ -179,13 +177,18 @@ export default function NodeConfigPanel({
     initialParameters?.timezone ?? "UTC",
   );
 
+  // chart
+  const [chartType, setChartType] = useState<string>(
+    initialParameters?.chartType ?? "",
+  );
+  const [chartPrompt, setChartPrompt] = useState<string>(
+    initialParameters?.chartPrompt ?? "",
+  );
+
   const handleSave = () => {
     let parameters: Record<string, any> = {};
     if (type === "schedule") {
-      parameters = {
-        cronExpression: cronExpression,
-        timezone: timezone,
-      };
+      parameters = { cronExpression, timezone };
     } else if (type === "autonomous_agent") {
       parameters = {
         systemPrompt: agentSystemPrompt,
@@ -195,7 +198,6 @@ export default function NodeConfigPanel({
     } else if (type === "llm_call") {
       parameters = {
         systemPrompt: llmSystemPrompt,
-        prompt: llmPrompt,
         outputToken: llmOutputToken,
       };
     } else if (type === "condition") {
@@ -211,7 +213,10 @@ export default function NodeConfigPanel({
       parameters = { top, queryField };
     } else if (type === "report_template") {
       parameters = { sections: reportParameters.sections };
+    } else if (type === "chart") {
+      parameters = { chartType, chartPrompt };
     }
+
     onSave(nodeId, parameters);
   };
 
@@ -401,15 +406,6 @@ export default function NodeConfigPanel({
             />
           </div>
           <div style={fieldStyle}>
-            <span style={labelStyle}>prompt</span>
-            <textarea
-              value={llmPrompt}
-              onChange={(e) => setLlmPrompt(e.target.value)}
-              rows={4}
-              style={{ ...inputStyle, resize: "vertical" }}
-            />
-          </div>
-          <div style={fieldStyle}>
             <span style={labelStyle}>Output Token</span>
             <input
               type="number"
@@ -569,6 +565,31 @@ export default function NodeConfigPanel({
       );
     }
 
+    if (type === "chart") {
+      return (
+        <>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Chart Type</span>
+            <input
+              type="text"
+              value={chartType}
+              onChange={(e) => setChartType(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>prompt</span>
+            <textarea
+              value={chartPrompt}
+              onChange={(e) => setChartPrompt(e.target.value)}
+              style={{ ...inputStyle, resize: "vertical" }}
+              rows={4}
+            />
+          </div>
+        </>
+      );
+    }
+
     return <div style={{ fontSize: "12px", color: "#555" }}>설정 없음</div>;
   };
 
@@ -636,10 +657,11 @@ export default function NodeConfigPanel({
         {type}
       </div>
 
-      {/* 폼 */}
+      {/* 타입별 파라미터 폼 */}
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {renderForm()}
       </div>
+
     </div>
   );
 }
