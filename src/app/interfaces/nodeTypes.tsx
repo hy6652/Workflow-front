@@ -16,6 +16,7 @@ export const nodeTypes = {
   report_template: ImageNode,
   schedule: ImageNode,
   chart: ImageNode,
+  mcp: ImageNode,
 };
 
 export const edgeTypes = {

@@ -494,4 +494,14 @@ export const initialNodes = [
       imageUrl: "nodeImages/call_split.svg",
     },
   },
+  {
+    id: "mcp",
+    category: "action",
+    type: "mcp",
+    position: { x: 0, y: 0 },
+    data: {
+      label: "MCP 연결",
+      imageUrl: "nodeImages/call_split.svg",
+    },
+  },
 ];

@@ -1,0 +1,241 @@
+{
+  "id": "c359b64e-66a3-43a2-aa4a-9ba904c25ec6",
+  "name": "mcp workflow",
+  "nodes": [
+    {
+      "id": "node_1",
+      "type": "chat",
+      "category": "trigger",
+      "position": {
+        "x": 194.1999969482422,
+        "y": 483.79998779296875
+      },
+      "data": {
+        "label": "챗 트리거",
+        "imageUrl": "nodeImages/touch_app.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      }
+    },
+    {
+      "id": "node_2",
+      "type": "mcp",
+      "category": "action",
+      "position": {
+        "x": 377.45705962083287,
+        "y": 423.639790483482
+      },
+      "data": {
+        "label": "MCP 연결",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "serverAlias": "notion",
+        "toolName": "API-post-search",
+        "toolInput": {
+          "query": "VAVA"
+        }
+      }
+    },
+    {
+      "id": "node_3",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 367.95658655599374,
+        "y": 562.3200799593503
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "사용자 질문에서 새로 생성하고 싶은 페이지의 이름을 찾아 아래의 형태로 리턴하세요.\n\n{\"name\": \"<새로 생성할 페이지 이름\"}",
+        "outputToken": null
+      }
+    },
+    {
+      "id": "node_4",
+      "type": "llm_call",
+      "category": "agent",
+      "position": {
+        "x": 701.7921282497218,
+        "y": 495.5529716206048
+      },
+      "data": {
+        "label": "Agent 호출",
+        "imageUrl": "nodeImages/chat.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "systemPrompt": "주어진 데이터는 Notion MCP를 사용하여 페이지를 검색한 내용입니다. 아래의 규칙을 읽고 알맞는 값을 넣어 리턴하세요.\n\n## 규칙 ##\n1. page_id는 데이터 속 url에서 가져옵니다. 해당 값을 json의 parent 아래 page_id에 넣습니다.\n\"url\" : \"https://www.notion.so/<page_name>-<page_id>\"\n\n2. 사용자 질문에서 추출한 새로 생성하는 페이지의 이름을 properties.title.title[0].content 자리에 넣습니다.\n{\"name\": \"<새로 생성할 페이지 이름>\"}\n\n3. 리터는 아래의 예시에 따라 json으로 하며, 다른 꾸밈 요소를  추가하지 않습니다.\n예시 : \n{\n    \"parent\": { \"page_id\": \"<page-id>\" },\n    \"properties\": {\n      \"title\": { \"title\": [{ \"text\": { \"content\": \"<새로생성할페이지>\" } }] }\n    }\n  }",
+        "outputToken": null
+      }
+    },
+    {
+      "id": "node_5",
+      "type": "aggregator",
+      "category": "utility",
+      "position": {
+        "x": 558.7574385073914,
+        "y": 495.28909419936167
+      },
+      "data": {
+        "label": "Aggregator",
+        "imageUrl": "nodeImages/edit.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "node_6",
+      "type": "mcp",
+      "category": "action",
+      "position": {
+        "x": 871.0849770946096,
+        "y": 498.45590513157947
+      },
+      "data": {
+        "label": "MCP 연결",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false,
+      "parameters": {
+        "serverAlias": "notion",
+        "toolName": "API-post-page",
+        "toolInput": {}
+      }
+    },
+    {
+      "id": "node_7",
+      "type": "output",
+      "category": "action",
+      "position": {
+        "x": 1036.5513013200793,
+        "y": 492.51809939900863
+      },
+      "data": {
+        "label": "최종 출력",
+        "imageUrl": "nodeImages/call_split.svg"
+      },
+      "measured": {
+        "width": 50,
+        "height": 89
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_1",
+      "target": "node_2",
+      "id": "edge_1",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_out",
+      "route": ""
+    },
+    {
+      "source": "node_1",
+      "target": "node_3",
+      "id": "edge_3",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_out",
+      "route": ""
+    },
+    {
+      "source": "node_2",
+      "target": "node_5",
+      "id": "edge_5",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_in",
+      "route": ""
+    },
+    {
+      "source": "node_3",
+      "target": "node_5",
+      "id": "edge_7",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "fan_in",
+      "route": ""
+    },
+    {
+      "source": "node_5",
+      "target": "node_4",
+      "id": "edge_9",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_4",
+      "target": "node_6",
+      "id": "edge_11",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    },
+    {
+      "source": "node_6",
+      "target": "node_7",
+      "id": "edge_13",
+      "type": "customEdge",
+      "markerEnd": {
+        "type": "arrowclosed"
+      },
+      "edgeType": "direct",
+      "route": ""
+    }
+  ],
+  "description": "mcp workflow 작업",
+  "orgId": "org-001",
+  "isActive": true,
+  "isDeleted": false,
+  "version": "1.0.0"
+}

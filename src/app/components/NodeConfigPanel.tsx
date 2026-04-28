@@ -18,6 +18,12 @@ type Expression = {
   value: string;
 };
 
+type DataExpression = {
+  fields: string[];
+  op: string;
+  to: string;
+};
+
 interface Props {
   nodeId: string;
   type: string;
@@ -68,7 +74,6 @@ const EMPTY_TOOL: ToolItem = {
   toolName: "",
   serverAlias: "",
 };
-
 
 interface ExpressionBlockProps {
   label: string;
@@ -136,6 +141,11 @@ export default function NodeConfigPanel({
     initialParameters?.outputToken ?? null,
   );
 
+  // data transform
+  const [mappings, setMappings] = useState<DataExpression[]>(
+    initialParameters?.mappings ?? [],
+  );
+
   // condition
   const [trueOutput, setTrueOutput] = useState<string>(
     initialParameters?.trueOutput ?? "",
@@ -185,6 +195,22 @@ export default function NodeConfigPanel({
     initialParameters?.chartPrompt ?? "",
   );
 
+  // mcp
+  const [mcpServerAlias, setMcpServerAlias] = useState<string>(
+    initialParameters?.serverAlias ?? "",
+  );
+  const [mcpToolName, setMcpToolName] = useState<string>(
+    initialParameters?.toolName ?? "",
+  );
+  const [toolInputPairs, setToolInputPairs] = useState<
+    { key: string; value: string }[]
+  >(
+    Object.entries(initialParameters?.toolInput ?? {}).map(([k, v]) => ({
+      key: k,
+      value: String(v),
+    })),
+  );
+
   const handleSave = () => {
     let parameters: Record<string, any> = {};
     if (type === "schedule") {
@@ -215,6 +241,18 @@ export default function NodeConfigPanel({
       parameters = { sections: reportParameters.sections };
     } else if (type === "chart") {
       parameters = { chartType, chartPrompt };
+    } else if (type === "data_transform") {
+      parameters = { mappings };
+    } else if (type === "mcp") {
+      parameters = {
+        serverAlias: mcpServerAlias,
+        toolName: mcpToolName,
+        toolInput: Object.fromEntries(
+          toolInputPairs
+            .filter((p) => p.key.trim())
+            .map((p) => [p.key, p.value]),
+        ),
+      };
     }
 
     onSave(nodeId, parameters);
@@ -283,6 +321,185 @@ export default function NodeConfigPanel({
             />
           </div>
         </>
+      );
+    }
+
+    if (type === "data_transform") {
+      return (
+        <div style={fieldStyle}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={labelStyle}>Mappings</span>
+            <button
+              onClick={() =>
+                setMappings((prev) => [...prev, { fields: [], op: "", to: "" }])
+              }
+              style={{
+                fontSize: "10px",
+                backgroundColor: "#333",
+                border: "1px solid #555",
+                borderRadius: "4px",
+                color: "#fff",
+                padding: "2px 6px",
+                cursor: "pointer",
+              }}
+            >
+              + 추가
+            </button>
+          </div>
+          {mappings.map((mapping, i) => (
+            <div
+              key={i}
+              style={{
+                border: "1px solid #333",
+                borderRadius: "6px",
+                padding: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+                marginTop: "4px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ ...labelStyle, color: "#aaa" }}>
+                  Mapping {i + 1}
+                </span>
+                <button
+                  onClick={() =>
+                    setMappings((prev) => prev.filter((_, idx) => idx !== i))
+                  }
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#666",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    padding: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={fieldStyle}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ ...labelStyle, fontSize: "10px" }}>
+                    fields
+                  </span>
+                  <button
+                    onClick={() =>
+                      setMappings((prev) =>
+                        prev.map((m, idx) =>
+                          idx === i ? { ...m, fields: [...m.fields, ""] } : m,
+                        ),
+                      )
+                    }
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#666",
+                      cursor: "pointer",
+                      fontSize: "11px",
+                      padding: 0,
+                    }}
+                  >
+                    + 추가
+                  </button>
+                </div>
+                {mapping.fields.map((f, fi) => (
+                  <div
+                    key={fi}
+                    style={{
+                      display: "flex",
+                      gap: "4px",
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      value={f}
+                      onChange={(e) =>
+                        setMappings((prev) =>
+                          prev.map((m, idx) =>
+                            idx === i
+                              ? {
+                                  ...m,
+                                  fields: m.fields.map((v, vi) =>
+                                    vi === fi ? e.target.value : v,
+                                  ),
+                                }
+                              : m,
+                          ),
+                        )
+                      }
+                      style={{ ...inputStyle, flex: 1 }}
+                    />
+                    <button
+                      onClick={() =>
+                        setMappings((prev) =>
+                          prev.map((m, idx) =>
+                            idx === i
+                              ? {
+                                  ...m,
+                                  fields: m.fields.filter((_, vi) => vi !== fi),
+                                }
+                              : m,
+                          ),
+                        )
+                      }
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#666",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        padding: "0 2px",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {(["op", "to"] as (keyof DataExpression)[]).map((k) => (
+                <div key={k} style={fieldStyle}>
+                  <span style={{ ...labelStyle, fontSize: "10px" }}>
+                    {k === "op" ? "op  (rename, copy, delete …)" : k}
+                  </span>
+                  <input
+                    type="text"
+                    value={mapping[k] as string}
+                    onChange={(e) =>
+                      setMappings((prev) =>
+                        prev.map((m, idx) =>
+                          idx === i ? { ...m, [k]: e.target.value } : m,
+                        ),
+                      )
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       );
     }
 
@@ -401,7 +618,7 @@ export default function NodeConfigPanel({
             <textarea
               value={llmSystemPrompt}
               onChange={(e) => setLlmSystemPrompt(e.target.value)}
-              rows={4}
+              rows={15}
               style={{ ...inputStyle, resize: "vertical" }}
             />
           </div>
@@ -590,13 +807,108 @@ export default function NodeConfigPanel({
       );
     }
 
+    if (type === "mcp") {
+      return (
+        <>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>MCP Server Alias</span>
+            <input
+              type="text"
+              value={mcpServerAlias}
+              onChange={(e) => setMcpServerAlias(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>MCP Tool Name</span>
+            <input
+              type="text"
+              value={mcpToolName}
+              onChange={(e) => setMcpToolName(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <span style={labelStyle}>Tool Input</span>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+            >
+              {toolInputPairs.map((pair, i) => (
+                <div
+                  key={i}
+                  style={{ display: "flex", gap: "4px", alignItems: "center" }}
+                >
+                  <input
+                    type="text"
+                    placeholder="key"
+                    value={pair.key}
+                    onChange={(e) =>
+                      setToolInputPairs((prev) =>
+                        prev.map((p, idx) =>
+                          idx === i ? { ...p, key: e.target.value } : p,
+                        ),
+                      )
+                    }
+                    style={{ ...inputStyle, flex: 1 }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="value"
+                    value={pair.value}
+                    onChange={(e) =>
+                      setToolInputPairs((prev) =>
+                        prev.map((p, idx) =>
+                          idx === i ? { ...p, value: e.target.value } : p,
+                        ),
+                      )
+                    }
+                    style={{ ...inputStyle, flex: 2 }}
+                  />
+                  <button
+                    onClick={() =>
+                      setToolInputPairs((prev) =>
+                        prev.filter((_, idx) => idx !== i),
+                      )
+                    }
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#666",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      padding: "0 2px",
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() =>
+                  setToolInputPairs((prev) => [...prev, { key: "", value: "" }])
+                }
+                style={{
+                  ...inputStyle,
+                  cursor: "pointer",
+                  color: "#888",
+                  textAlign: "left",
+                }}
+              >
+                + Add
+              </button>
+            </div>
+          </div>
+        </>
+      );
+    }
+
     return <div style={{ fontSize: "12px", color: "#555" }}>설정 없음</div>;
   };
 
   return (
     <div
       style={{
-        width: "220px",
+        width: "300px",
         borderLeft: "1px solid #333",
         padding: "16px",
         display: "flex",
@@ -661,7 +973,6 @@ export default function NodeConfigPanel({
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {renderForm()}
       </div>
-
     </div>
   );
 }

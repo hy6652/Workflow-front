@@ -88,7 +88,7 @@ export default function SideBar(props: NodeProps) {
   return (
     <div
       style={{
-        width: "220px",
+        width: "300px",
         borderLeft: "1px solid #333",
         padding: "16px",
         display: "flex",
@@ -223,10 +223,7 @@ export default function SideBar(props: NodeProps) {
           </div>
 
           {isDragging && (
-            <DragGhost
-              label={dragNode?.label}
-              imageUrl={dragNode?.imageUrl}
-            />
+            <DragGhost label={dragNode?.label} imageUrl={dragNode?.imageUrl} />
           )}
 
           {/* 카테고리별 노드 목록 */}
@@ -256,12 +253,14 @@ export default function SideBar(props: NodeProps) {
                       borderRadius: "4px",
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.backgroundColor =
-                        "#222";
+                      (
+                        e.currentTarget as HTMLDivElement
+                      ).style.backgroundColor = "#222";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLDivElement).style.backgroundColor =
-                        "transparent";
+                      (
+                        e.currentTarget as HTMLDivElement
+                      ).style.backgroundColor = "transparent";
                     }}
                   >
                     <span
