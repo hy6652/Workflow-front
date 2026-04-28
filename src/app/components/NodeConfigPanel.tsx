@@ -1,28 +1,18 @@
 "use client";
-import { useState } from "react";
-import reportParameters from "../../../sample/report_parameters.json";
 
-type ToolItem = {
-  type: string;
-  provider: string;
-  endpoint: string;
-  name: string;
-  description: string;
-  toolName: string;
-  serverAlias: string;
-};
-
-type Expression = {
-  field: string;
-  op: string;
-  value: string;
-};
-
-type DataExpression = {
-  fields: string[];
-  op: string;
-  to: string;
-};
+import { useRef } from "react";
+import { FormRef } from "./config/configTypes";
+import { ScheduleForm } from "./config/forms/ScheduleForm";
+import { AgentForm } from "./config/forms/AgentForm";
+import { LlmCallForm } from "./config/forms/LlmCallForm";
+import { ConditionForm } from "./config/forms/ConditionForm";
+import { WhileForm } from "./config/forms/WhileForm";
+import { ForeachForm } from "./config/forms/ForeachForm";
+import { AzureSearchForm } from "./config/forms/AzureSearchForm";
+import { ReportTemplateForm } from "./config/forms/ReportTemplateForm";
+import { ChartForm } from "./config/forms/ChartForm";
+import { McpForm } from "./config/forms/McpForm";
+import { DataTransformForm } from "./config/forms/DataTransformForm";
 
 interface Props {
   nodeId: string;
@@ -32,89 +22,6 @@ interface Props {
   onClose: () => void;
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  backgroundColor: "#2a2a2a",
-  border: "1px solid #444",
-  borderRadius: "4px",
-  color: "#fff",
-  fontSize: "11px",
-  padding: "6px 8px",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: "11px",
-  color: "#888",
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-};
-
-const TOOL_FIELDS: (keyof ToolItem)[] = [
-  "type",
-  "provider",
-  "endpoint",
-  "name",
-  "description",
-  "toolName",
-  "serverAlias",
-];
-
-const EMPTY_TOOL: ToolItem = {
-  type: "",
-  provider: "",
-  endpoint: "",
-  name: "",
-  description: "",
-  toolName: "",
-  serverAlias: "",
-};
-
-interface ExpressionBlockProps {
-  label: string;
-  value: Expression;
-  onChange: React.Dispatch<React.SetStateAction<Expression>>;
-}
-
-function ExpressionBlock({ label, value, onChange }: ExpressionBlockProps) {
-  return (
-    <div style={fieldStyle}>
-      <span style={labelStyle}>{label}</span>
-      <div
-        style={{
-          border: "1px solid #333",
-          borderRadius: "6px",
-          padding: "8px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "6px",
-        }}
-      >
-        {(["field", "op", "value"] as (keyof Expression)[]).map((k) => (
-          <div key={k} style={fieldStyle}>
-            <span style={{ ...labelStyle, fontSize: "10px" }}>
-              {k === "op" ? "op  (gt, le, equals …)" : k}
-            </span>
-            <input
-              type="text"
-              value={value[k]}
-              onChange={(e) =>
-                onChange((prev) => ({ ...prev, [k]: e.target.value }))
-              }
-              style={inputStyle}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function NodeConfigPanel({
   nodeId,
   type,
@@ -122,582 +29,39 @@ export default function NodeConfigPanel({
   onSave,
   onClose,
 }: Props) {
-  // autonomous_agent
-  const [agentSystemPrompt, setAgentSystemPrompt] = useState<string>(
-    initialParameters?.systemPrompt ?? "",
-  );
-  const [tools, setTools] = useState<ToolItem[]>(
-    initialParameters?.tools ?? [],
-  );
-  const [agentOutputToken, setAgentOutputToken] = useState<number | null>(
-    initialParameters?.outputToken ?? null,
-  );
-
-  // llm_call
-  const [llmSystemPrompt, setLlmSystemPrompt] = useState<string>(
-    initialParameters?.systemPrompt ?? "",
-  );
-  const [llmOutputToken, setLlmOutputToken] = useState<number | null>(
-    initialParameters?.outputToken ?? null,
-  );
-
-  // data transform
-  const [mappings, setMappings] = useState<DataExpression[]>(
-    initialParameters?.mappings ?? [],
-  );
-
-  // condition
-  const [trueOutput, setTrueOutput] = useState<string>(
-    initialParameters?.trueOutput ?? "",
-  );
-  const [falseOutput, setFalseOutput] = useState<string>(
-    initialParameters?.falseOutput ?? "",
-  );
-  const [expression, setExpression] = useState<Expression>(
-    initialParameters?.expression ?? { field: "", op: "", value: "" },
-  );
-
-  // while
-  const [maxIterations, setMaxIterations] = useState<number>(
-    initialParameters?.maxIterations ?? 10,
-  );
-  const [doneCondition, setDoneCondition] = useState<Expression>(
-    initialParameters?.doneCondition ?? { field: "", op: "", value: "" },
-  );
-  const [breakCondition, setBreakCondition] = useState<Expression>(
-    initialParameters?.breakCondition ?? { field: "", op: "", value: "" },
-  );
-
-  // foreach
-  const [iterateOver, setIterateOver] = useState<string>(
-    initialParameters?.iterateOver ?? "",
-  );
-
-  // azure_search
-  const [top, setTop] = useState<number>(initialParameters?.top ?? 5);
-  const [queryField, setQueryField] = useState<string>(
-    initialParameters?.queryField ?? "question",
-  );
-
-  // schedule
-  const [cronExpression, setCronExpression] = useState<string>(
-    initialParameters?.cronExpression ?? "",
-  );
-  const [timezone, setTimezone] = useState<string>(
-    initialParameters?.timezone ?? "UTC",
-  );
-
-  // chart
-  const [chartType, setChartType] = useState<string>(
-    initialParameters?.chartType ?? "",
-  );
-  const [chartPrompt, setChartPrompt] = useState<string>(
-    initialParameters?.chartPrompt ?? "",
-  );
-
-  // mcp
-  const [mcpServerAlias, setMcpServerAlias] = useState<string>(
-    initialParameters?.serverAlias ?? "",
-  );
-  const [mcpToolName, setMcpToolName] = useState<string>(
-    initialParameters?.toolName ?? "",
-  );
-  const [toolInputPairs, setToolInputPairs] = useState<
-    { key: string; value: string }[]
-  >(
-    Object.entries(initialParameters?.toolInput ?? {}).map(([k, v]) => ({
-      key: k,
-      value: String(v),
-    })),
-  );
+  const formRef = useRef<FormRef>(null);
 
   const handleSave = () => {
-    let parameters: Record<string, any> = {};
-    if (type === "schedule") {
-      parameters = { cronExpression, timezone };
-    } else if (type === "autonomous_agent") {
-      parameters = {
-        systemPrompt: agentSystemPrompt,
-        outputToken: agentOutputToken,
-        tools,
-      };
-    } else if (type === "llm_call") {
-      parameters = {
-        systemPrompt: llmSystemPrompt,
-        outputToken: llmOutputToken,
-      };
-    } else if (type === "condition") {
-      parameters = { trueOutput, falseOutput, expression };
-    } else if (type === "while") {
-      parameters = { maxIterations };
-      if (doneCondition.field.trim()) parameters.doneCondition = doneCondition;
-      if (breakCondition.field.trim())
-        parameters.breakCondition = breakCondition;
-    } else if (type === "foreach") {
-      if (iterateOver.trim()) parameters.iterateOver = iterateOver.trim();
-    } else if (type === "azure_search") {
-      parameters = { top, queryField };
-    } else if (type === "report_template") {
-      parameters = { sections: reportParameters.sections };
-    } else if (type === "chart") {
-      parameters = { chartType, chartPrompt };
-    } else if (type === "data_transform") {
-      parameters = { mappings };
-    } else if (type === "mcp") {
-      parameters = {
-        serverAlias: mcpServerAlias,
-        toolName: mcpToolName,
-        toolInput: Object.fromEntries(
-          toolInputPairs
-            .filter((p) => p.key.trim())
-            .map((p) => [p.key, p.value]),
-        ),
-      };
-    }
-
-    onSave(nodeId, parameters);
+    onSave(nodeId, formRef.current?.getParameters() ?? {});
   };
 
-  const addTool = () => setTools((prev) => [...prev, { ...EMPTY_TOOL }]);
-  const removeTool = (i: number) =>
-    setTools((prev) => prev.filter((_, idx) => idx !== i));
-  const updateTool = (i: number, field: keyof ToolItem, value: string) =>
-    setTools((prev) =>
-      prev.map((t, idx) => (idx === i ? { ...t, [field]: value } : t)),
-    );
-
   const renderForm = () => {
-    if (type === "manual") {
-      return (
-        <div
-          style={{
-            fontSize: "11px",
-            color: "#666",
-            lineHeight: "1.6",
-            padding: "8px 0",
-          }}
-        >
-          별도 설정 없음.
-          <br />
-          버튼 클릭 등 외부 이벤트로 실행됩니다.
-        </div>
-      );
-    }
-
-    if (type === "chat") {
-      return (
-        <div
-          style={{
-            fontSize: "11px",
-            color: "#666",
-            lineHeight: "1.6",
-            padding: "8px 0",
-          }}
-        >
-          별도 설정 없음.
-          <br />
-          테스트 패널의 채팅 입력이 이 트리거로 전달됩니다.
-        </div>
-      );
-    }
-
-    if (type === "schedule") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Cron Expression</span>
-            <input
-              value={cronExpression}
-              onChange={(e) => setCronExpression(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Time Zone</span>
-            <input
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        </>
-      );
-    }
-
-    if (type === "data_transform") {
-      return (
-        <div style={fieldStyle}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span style={labelStyle}>Mappings</span>
-            <button
-              onClick={() =>
-                setMappings((prev) => [...prev, { fields: [], op: "", to: "" }])
-              }
-              style={{
-                fontSize: "10px",
-                backgroundColor: "#333",
-                border: "1px solid #555",
-                borderRadius: "4px",
-                color: "#fff",
-                padding: "2px 6px",
-                cursor: "pointer",
-              }}
-            >
-              + 추가
-            </button>
-          </div>
-          {mappings.map((mapping, i) => (
-            <div
-              key={i}
-              style={{
-                border: "1px solid #333",
-                borderRadius: "6px",
-                padding: "8px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-                marginTop: "4px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ ...labelStyle, color: "#aaa" }}>
-                  Mapping {i + 1}
-                </span>
-                <button
-                  onClick={() =>
-                    setMappings((prev) => prev.filter((_, idx) => idx !== i))
-                  }
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#666",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    padding: 0,
-                    lineHeight: 1,
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-              <div style={fieldStyle}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span style={{ ...labelStyle, fontSize: "10px" }}>
-                    fields
-                  </span>
-                  <button
-                    onClick={() =>
-                      setMappings((prev) =>
-                        prev.map((m, idx) =>
-                          idx === i ? { ...m, fields: [...m.fields, ""] } : m,
-                        ),
-                      )
-                    }
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#666",
-                      cursor: "pointer",
-                      fontSize: "11px",
-                      padding: 0,
-                    }}
-                  >
-                    + 추가
-                  </button>
-                </div>
-                {mapping.fields.map((f, fi) => (
-                  <div
-                    key={fi}
-                    style={{
-                      display: "flex",
-                      gap: "4px",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      type="text"
-                      value={f}
-                      onChange={(e) =>
-                        setMappings((prev) =>
-                          prev.map((m, idx) =>
-                            idx === i
-                              ? {
-                                  ...m,
-                                  fields: m.fields.map((v, vi) =>
-                                    vi === fi ? e.target.value : v,
-                                  ),
-                                }
-                              : m,
-                          ),
-                        )
-                      }
-                      style={{ ...inputStyle, flex: 1 }}
-                    />
-                    <button
-                      onClick={() =>
-                        setMappings((prev) =>
-                          prev.map((m, idx) =>
-                            idx === i
-                              ? {
-                                  ...m,
-                                  fields: m.fields.filter((_, vi) => vi !== fi),
-                                }
-                              : m,
-                          ),
-                        )
-                      }
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#666",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        padding: "0 2px",
-                      }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {(["op", "to"] as (keyof DataExpression)[]).map((k) => (
-                <div key={k} style={fieldStyle}>
-                  <span style={{ ...labelStyle, fontSize: "10px" }}>
-                    {k === "op" ? "op  (rename, copy, delete …)" : k}
-                  </span>
-                  <input
-                    type="text"
-                    value={mapping[k] as string}
-                    onChange={(e) =>
-                      setMappings((prev) =>
-                        prev.map((m, idx) =>
-                          idx === i ? { ...m, [k]: e.target.value } : m,
-                        ),
-                      )
-                    }
-                    style={inputStyle}
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (type === "autonomous_agent") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>System Prompt</span>
-            <textarea
-              value={agentSystemPrompt}
-              onChange={(e) => setAgentSystemPrompt(e.target.value)}
-              rows={4}
-              style={{ ...inputStyle, resize: "vertical" }}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Output Token</span>
-            <input
-              type="number"
-              value={agentOutputToken ?? ""}
-              onChange={(e) =>
-                setAgentOutputToken(
-                  e.target.value === "" ? null : Number(e.target.value),
-                )
-              }
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span style={labelStyle}>Tools</span>
-              <button
-                onClick={addTool}
-                style={{
-                  fontSize: "10px",
-                  backgroundColor: "#333",
-                  border: "1px solid #555",
-                  borderRadius: "4px",
-                  color: "#fff",
-                  padding: "2px 6px",
-                  cursor: "pointer",
-                }}
-              >
-                + 추가
-              </button>
-            </div>
-            {tools.map((tool, i) => (
-              <div
-                key={i}
-                style={{
-                  border: "1px solid #333",
-                  borderRadius: "6px",
-                  padding: "8px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px",
-                  marginTop: "4px",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span style={{ ...labelStyle, color: "#aaa" }}>
-                    Tool {i + 1}
-                  </span>
-                  <button
-                    onClick={() => removeTool(i)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#666",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      padding: 0,
-                      lineHeight: 1,
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-                {TOOL_FIELDS.map((field) => (
-                  <div key={field} style={fieldStyle}>
-                    <span style={{ ...labelStyle, fontSize: "10px" }}>
-                      {field}
-                    </span>
-                    <input
-                      type="text"
-                      value={tool[field]}
-                      onChange={(e) => updateTool(i, field, e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (type === "llm_call") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>systemPrompt</span>
-            <textarea
-              value={llmSystemPrompt}
-              onChange={(e) => setLlmSystemPrompt(e.target.value)}
-              rows={15}
-              style={{ ...inputStyle, resize: "vertical" }}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Output Token</span>
-            <input
-              type="number"
-              value={llmOutputToken ?? ""}
-              onChange={(e) =>
-                setLlmOutputToken(
-                  e.target.value === "" ? null : Number(e.target.value),
-                )
-              }
-              style={inputStyle}
-            />
-          </div>
-        </>
-      );
-    }
-
-    if (type === "condition") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>True Output</span>
-            <input
-              type="text"
-              value={trueOutput}
-              onChange={(e) => setTrueOutput(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>False Output</span>
-            <input
-              type="text"
-              value={falseOutput}
-              onChange={(e) => setFalseOutput(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <ExpressionBlock
-            label="Expression"
-            value={expression}
-            onChange={setExpression}
-          />
-        </>
-      );
-    }
-
-    if (type === "while") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Max Iterations</span>
-            <input
-              type="number"
-              value={maxIterations}
-              onChange={(e) => setMaxIterations(Number(e.target.value))}
-              style={inputStyle}
-            />
-          </div>
-          <ExpressionBlock
-            label="doneCondition (선택 · done 엣지)"
-            value={doneCondition}
-            onChange={setDoneCondition}
-          />
-          <ExpressionBlock
-            label="breakCondition (선택 · break 엣지)"
-            value={breakCondition}
-            onChange={setBreakCondition}
-          />
-        </>
-      );
-    }
-
-    if (type === "foreach") {
-      return (
-        <>
+    const props = { initialParameters, ref: formRef };
+    switch (type) {
+      case "schedule":
+        return <ScheduleForm {...props} />;
+      case "autonomous_agent":
+        return <AgentForm {...props} />;
+      case "llm_call":
+        return <LlmCallForm {...props} />;
+      case "condition":
+        return <ConditionForm {...props} />;
+      case "while":
+        return <WhileForm {...props} />;
+      case "foreach":
+        return <ForeachForm {...props} />;
+      case "azure_search":
+        return <AzureSearchForm {...props} />;
+      case "report_template":
+        return <ReportTemplateForm {...props} />;
+      case "chart":
+        return <ChartForm {...props} />;
+      case "data_transform":
+        return <DataTransformForm {...props} />;
+      case "mcp":
+        return <McpForm {...props} />;
+      case "manual":
+        return (
           <div
             style={{
               fontSize: "11px",
@@ -706,203 +70,29 @@ export default function NodeConfigPanel({
               padding: "8px 0",
             }}
           >
-            iterateOver를 지정하지 않으면 이전 노드의 배열을 전달합니다.
+            별도 설정 없음.
+            <br />
+            버튼 클릭 등 외부 이벤트로 실행됩니다.
           </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>
-              iterateOver
-              <span style={{ color: "#555", marginLeft: "4px" }}>(선택)</span>
-            </span>
-            <input
-              type="text"
-              value={iterateOver}
-              onChange={(e) => setIterateOver(e.target.value)}
-              placeholder="배열 필드명 (예: items)"
-              style={{ ...inputStyle, color: iterateOver ? "#fff" : "#555" }}
-            />
+        );
+      case "chat":
+        return (
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#666",
+              lineHeight: "1.6",
+              padding: "8px 0",
+            }}
+          >
+            별도 설정 없음.
+            <br />
+            테스트 패널의 채팅 입력이 이 트리거로 전달됩니다.
           </div>
-        </>
-      );
+        );
+      default:
+        return <div style={{ fontSize: "12px", color: "#555" }}>설정 없음</div>;
     }
-
-    if (type === "azure_search") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Top</span>
-            <input
-              type="number"
-              value={top}
-              onChange={(e) => setTop(Number(e.target.value))}
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Query Field</span>
-            <input
-              type="text"
-              value={queryField}
-              onChange={(e) => setQueryField(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        </>
-      );
-    }
-
-    if (type === "report_template") {
-      return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <div style={{ fontSize: "11px", color: "#888" }}>
-            고정된 섹션 스키마를 사용합니다. 저장 시 자동으로 적용됩니다.
-          </div>
-          {reportParameters.sections.map((section) => (
-            <div
-              key={section.name}
-              style={{
-                border: "1px solid #333",
-                borderRadius: "6px",
-                padding: "8px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "2px",
-              }}
-            >
-              <span
-                style={{ fontSize: "11px", color: "#ccc", fontWeight: "bold" }}
-              >
-                {section.name}
-              </span>
-              <span style={{ fontSize: "10px", color: "#666" }}>
-                {section.description}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (type === "chart") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Chart Type</span>
-            <input
-              type="text"
-              value={chartType}
-              onChange={(e) => setChartType(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>prompt</span>
-            <textarea
-              value={chartPrompt}
-              onChange={(e) => setChartPrompt(e.target.value)}
-              style={{ ...inputStyle, resize: "vertical" }}
-              rows={4}
-            />
-          </div>
-        </>
-      );
-    }
-
-    if (type === "mcp") {
-      return (
-        <>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>MCP Server Alias</span>
-            <input
-              type="text"
-              value={mcpServerAlias}
-              onChange={(e) => setMcpServerAlias(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>MCP Tool Name</span>
-            <input
-              type="text"
-              value={mcpToolName}
-              onChange={(e) => setMcpToolName(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <span style={labelStyle}>Tool Input</span>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-            >
-              {toolInputPairs.map((pair, i) => (
-                <div
-                  key={i}
-                  style={{ display: "flex", gap: "4px", alignItems: "center" }}
-                >
-                  <input
-                    type="text"
-                    placeholder="key"
-                    value={pair.key}
-                    onChange={(e) =>
-                      setToolInputPairs((prev) =>
-                        prev.map((p, idx) =>
-                          idx === i ? { ...p, key: e.target.value } : p,
-                        ),
-                      )
-                    }
-                    style={{ ...inputStyle, flex: 1 }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="value"
-                    value={pair.value}
-                    onChange={(e) =>
-                      setToolInputPairs((prev) =>
-                        prev.map((p, idx) =>
-                          idx === i ? { ...p, value: e.target.value } : p,
-                        ),
-                      )
-                    }
-                    style={{ ...inputStyle, flex: 2 }}
-                  />
-                  <button
-                    onClick={() =>
-                      setToolInputPairs((prev) =>
-                        prev.filter((_, idx) => idx !== i),
-                      )
-                    }
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#666",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      padding: "0 2px",
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() =>
-                  setToolInputPairs((prev) => [...prev, { key: "", value: "" }])
-                }
-                style={{
-                  ...inputStyle,
-                  cursor: "pointer",
-                  color: "#888",
-                  textAlign: "left",
-                }}
-              >
-                + Add
-              </button>
-            </div>
-          </div>
-        </>
-      );
-    }
-
-    return <div style={{ fontSize: "12px", color: "#555" }}>설정 없음</div>;
   };
 
   return (
@@ -918,7 +108,6 @@ export default function NodeConfigPanel({
         flexShrink: 0,
       }}
     >
-      {/* 헤더 */}
       <div
         style={{
           display: "flex",
@@ -955,8 +144,6 @@ export default function NodeConfigPanel({
           저장
         </button>
       </div>
-
-      {/* 카테고리 표시 */}
       <div
         style={{
           fontSize: "11px",
@@ -968,8 +155,6 @@ export default function NodeConfigPanel({
       >
         {type}
       </div>
-
-      {/* 타입별 파라미터 폼 */}
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {renderForm()}
       </div>

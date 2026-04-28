@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import { Workflow } from "../interfaces/workflows";
 
 interface WorkflowHeaderProps {
   activeTab: "new" | "saved";
-  selectedWorkflow: Workflow | null;
   setActiveTab: (tab: "new" | "saved") => void;
   title: string;
   setTitle: (title: string) => void;
@@ -15,7 +13,6 @@ interface WorkflowHeaderProps {
 
 export default function WorkflowHeader({
   activeTab,
-  selectedWorkflow,
   setActiveTab,
   title,
   setTitle,
@@ -35,7 +32,6 @@ export default function WorkflowHeader({
         backgroundColor: "#1a1a1a",
       }}
     >
-      {/* 왼쪽: 탭 */}
       <div style={{ display: "flex", alignItems: "center" }}>
         <button
           onClick={() => setActiveTab("new")}
@@ -44,8 +40,7 @@ export default function WorkflowHeader({
             background: "none",
             border: "none",
             color: activeTab === "new" ? "#fff" : "#666",
-            borderBottom:
-              activeTab === "new" ? "2px solid #fff" : "2px solid transparent",
+            borderBottom: activeTab === "new" ? "2px solid #fff" : "2px solid transparent",
             cursor: "pointer",
             fontSize: "14px",
             fontWeight: activeTab === "new" ? "bold" : "normal",
@@ -60,10 +55,7 @@ export default function WorkflowHeader({
             background: "none",
             border: "none",
             color: activeTab === "saved" ? "#fff" : "#666",
-            borderBottom:
-              activeTab === "saved"
-                ? "2px solid #fff"
-                : "2px solid transparent",
+            borderBottom: activeTab === "saved" ? "2px solid #fff" : "2px solid transparent",
             cursor: "pointer",
             fontSize: "14px",
             fontWeight: activeTab === "saved" ? "bold" : "normal",
@@ -72,8 +64,6 @@ export default function WorkflowHeader({
           저장된 워크플로우
         </button>
       </div>
-
-      {/* 오른쪽: 제목 + 버튼 */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <input
           type="text"
@@ -93,30 +83,13 @@ export default function WorkflowHeader({
         />
         <button
           onClick={onReset}
-          style={{
-            padding: "6px 14px",
-            backgroundColor: "#333",
-            border: "1px solid #555",
-            borderRadius: "6px",
-            color: "#fff",
-            cursor: "pointer",
-            fontSize: "13px",
-          }}
+          style={{ padding: "6px 14px", backgroundColor: "#333", border: "1px solid #555", borderRadius: "6px", color: "#fff", cursor: "pointer", fontSize: "13px" }}
         >
           리셋
         </button>
         <button
           onClick={onSave}
-          style={{
-            padding: "6px 14px",
-            backgroundColor: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            color: "#000",
-            cursor: "pointer",
-            fontSize: "13px",
-            fontWeight: "bold",
-          }}
+          style={{ padding: "6px 14px", backgroundColor: "#fff", border: "none", borderRadius: "6px", color: "#000", cursor: "pointer", fontSize: "13px", fontWeight: "bold" }}
         >
           저장
         </button>

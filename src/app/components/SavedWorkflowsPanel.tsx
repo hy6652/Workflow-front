@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Workflow } from "../interfaces/workflows";
 
 interface SavedWorkflow {
   id: string;
@@ -9,16 +8,12 @@ interface SavedWorkflow {
   fileName: string;
 }
 
-interface SavedWorkflowsPanelProps {
+interface Props {
   workflows: SavedWorkflow[];
-  selectedWorkflow: Workflow | null;
   onSelect?: (workflow: SavedWorkflow) => void;
 }
 
-export default function SavedWorkflowsPanel({
-  workflows,
-  onSelect,
-}: SavedWorkflowsPanelProps) {
+export default function SavedWorkflowsPanel({ workflows, onSelect }: Props) {
   return (
     <div
       style={{
@@ -33,27 +28,11 @@ export default function SavedWorkflowsPanel({
         backgroundColor: "#1a1a1a",
       }}
     >
-      <div
-        style={{
-          fontSize: "12px",
-          color: "#888",
-          marginBottom: "8px",
-          fontWeight: "bold",
-          textTransform: "uppercase",
-          letterSpacing: "0.5px",
-        }}
-      >
+      <div style={{ fontSize: "12px", color: "#888", marginBottom: "8px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.5px" }}>
         저장된 워크플로우
       </div>
       {workflows.length === 0 ? (
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#555",
-            textAlign: "center",
-            marginTop: "20px",
-          }}
-        >
+        <div style={{ fontSize: "12px", color: "#555", textAlign: "center", marginTop: "20px" }}>
           저장된 워크플로우가 없습니다.
         </div>
       ) : (
@@ -61,42 +40,12 @@ export default function SavedWorkflowsPanel({
           <div
             key={wf.id}
             onClick={() => onSelect?.(wf)}
-            style={{
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #333",
-              backgroundColor: "#222",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "#555";
-              e.currentTarget.style.backgroundColor = "#2a2a2a";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "#333";
-              e.currentTarget.style.backgroundColor = "#222";
-            }}
+            style={{ padding: "12px", borderRadius: "8px", border: "1px solid #333", backgroundColor: "#222", cursor: "pointer", transition: "all 0.2s ease" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#555"; e.currentTarget.style.backgroundColor = "#2a2a2a"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#333"; e.currentTarget.style.backgroundColor = "#222"; }}
           >
-            <div
-              style={{
-                fontSize: "13px",
-                color: "#fff",
-                fontWeight: "bold",
-                marginBottom: "4px",
-              }}
-            >
-              {wf.name}
-            </div>
-            <div
-              style={{
-                fontSize: "11px",
-                color: "#666",
-                fontFamily: "monospace",
-              }}
-            >
-              {wf.fileName}
-            </div>
+            <div style={{ fontSize: "13px", color: "#fff", fontWeight: "bold", marginBottom: "4px" }}>{wf.name}</div>
+            <div style={{ fontSize: "11px", color: "#666", fontFamily: "monospace" }}>{wf.fileName}</div>
           </div>
         ))
       )}

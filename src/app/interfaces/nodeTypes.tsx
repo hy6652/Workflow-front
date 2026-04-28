@@ -1,23 +1,12 @@
-import { ImageNode, CustomEdge } from "../components/CustomNodes";
+import { ImageNode } from "../components/nodes/ImageNode";
+import { CustomEdge } from "../components/edges/CustomEdge";
+import { initialNodes } from "../components/nodes/initialNodes";
 
-export const nodeTypes = {
-  imageNode: ImageNode,
-  manual: ImageNode,
-  chat: ImageNode,
-  azure_search: ImageNode,
-  llm_call: ImageNode,
-  aggregator: ImageNode,
-  condition: ImageNode,
-  while: ImageNode,
-  foreach: ImageNode,
-  autonomous_agent: ImageNode,
-  output: ImageNode,
-  data_transform: ImageNode,
-  report_template: ImageNode,
-  schedule: ImageNode,
-  chart: ImageNode,
-  mcp: ImageNode,
-};
+const allTypeKeys = ["imageNode", ...new Set(initialNodes.map((n) => n.type))];
+
+export const nodeTypes = Object.fromEntries(
+  allTypeKeys.map((t) => [t, ImageNode]),
+) as Record<string, typeof ImageNode>;
 
 export const edgeTypes = {
   customEdge: CustomEdge,

@@ -13,7 +13,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import { initialNodes } from "./components/CustomNodes";
+import { initialNodes } from "./components/nodes/initialNodes";
 import { Workflow } from "./interfaces/workflows";
 import { DnDProvider } from "./context/DnDContext";
 import {
@@ -326,7 +326,6 @@ function FlowEditor() {
     >
       <WorkflowHeader
         activeTab={activeTab}
-        selectedWorkflow={selectedWorkflow}
         setActiveTab={handleTabChange}
         title={title}
         setTitle={setTitle}
@@ -420,7 +419,6 @@ function FlowEditor() {
             <SavedWorkflowsPanel
               workflows={savedWorkflows}
               onSelect={handleSelectSavedWorkflow}
-              selectedWorkflow={selectedWorkflow}
             />
           </div>
         )}
